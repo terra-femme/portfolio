@@ -1,0 +1,304 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --bg-0: #ffffff;
+  --bg-1: #f4f5f3;
+  --ink: #111311;
+  --ink-dim: #6b6f6a;
+  --accent: #1f8a4c;
+  --accent-soft: #e7f2ea;
+  --line: rgba(17, 19, 17, 0.12);
+  --card: #ffffff;
+  --display: 'Space Grotesk', sans-serif;
+  --body: 'Inter', sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg-0); color: var(--ink); font-family: var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+.bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.content { position: relative; z-index: 1; }
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: 22px clamp(20px,5vw,64px); background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.nav .mark { font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; font-size: 18px; }
+.nav .mark span { color: var(--accent); }
+.nav .links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-dim); }
+.nav .links a { transition: color 0.25s; }
+.nav .links a:hover { color: var(--ink); }
+.scramble-word { display: inline-flex; perspective: 240px; }
+.scramble-letter { display: inline-block; transform-style: preserve-3d; }
+.letter-bubble, .letter-bubble-glow {
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation-fill-mode: both;
+  animation-iteration-count: 1;
+}
+.letter-bubble { animation-name: letter-bubble; }
+.letter-bubble-glow { animation-name: letter-bubble-glow; }
+@keyframes letter-bubble {
+  0%   { transform: translateY(0) scale(1) rotateX(0deg); text-shadow: none; }
+  40%  { transform: translateY(-0.42em) scale(1.32) rotateX(22deg); text-shadow: 0 0.16em 0.1em rgba(0,0,0,0.2); color: var(--accent); }
+  70%  { transform: translateY(-0.08em) scale(1.06) rotateX(5deg); }
+  100% { transform: translateY(0) scale(1) rotateX(0deg); text-shadow: none; }
+}
+@keyframes letter-bubble-glow {
+  0%   { transform: translateY(0) scale(1) rotateX(0deg); text-shadow: none; color: var(--ink-dim); }
+  40%  { transform: translateY(-0.5em) scale(1.35) rotateX(24deg); text-shadow: 0 0 0.5em rgba(31,138,76,0.75), 0 0 1.1em rgba(31,138,76,0.45); color: var(--accent); }
+  70%  { transform: translateY(-0.1em) scale(1.08) rotateX(6deg); text-shadow: 0 0 0.3em rgba(31,138,76,0.4); }
+  100% { transform: translateY(0) scale(1) rotateX(0deg); text-shadow: none; color: var(--ink-dim); }
+}
+@media (prefers-reduced-motion: reduce){ .letter-bubble, .letter-bubble-glow { animation: none; } }
+@media (max-width: 640px){ .nav .links { display: none; } }
+
+/* ---------- Page container / profile sidebar ---------- */
+:root { --nav-clear: 96px; }
+.page-container {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) 1fr;
+  gap: clamp(24px, 3vw, 48px);
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: var(--nav-clear) clamp(20px,5vw,64px) 80px;
+  align-items: start;
+}
+.page-container > * { min-width: 0; }
+.profile-panel {
+  position: sticky;
+  top: var(--nav-clear);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 26px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+}
+.profile-photo { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 16px; }
+.profile-caption { font-family: var(--display); font-weight: 600; font-size: 14.5px; text-align: center; color: var(--ink); }
+.profile-panel hr { width: 100%; border: none; border-top: 1px solid var(--line); }
+.sidebar-cta { font-family: var(--display); font-weight: 600; font-size: 15px; color: var(--accent); text-align: center; }
+.social-links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.social-links a {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink);
+  transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.3s;
+}
+.social-links a:hover { background: var(--accent); border-color: var(--accent); color: #fff; transform: translateY(-2px); }
+.social-links svg { width: 17px; height: 17px; }
+@media (max-width: 900px){
+  .page-container { grid-template-columns: 1fr; }
+  .profile-panel { position: static; }
+}
+
+/* ---------- Right-side content column ---------- */
+.frames { display: flex; flex-direction: column; gap: clamp(60px, 10vh, 140px); }
+
+/* ---------- Leaf sprout animation ---------- */
+.leaf-sprout-seed { fill: #8a6a45; }
+.leaf-sprout-stem { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 32; stroke-dashoffset: 32; animation: leaf-stem 4.5s ease-in-out infinite; }
+.leaf-sprout-leaf { fill: var(--accent); transform-box: fill-box; transform-origin: 50% 100%; opacity: 0; animation: leaf-bloom 4.5s ease-in-out infinite; }
+@keyframes leaf-stem {
+  0% { stroke-dashoffset: 32; }
+  35% { stroke-dashoffset: 0; }
+  85% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 32; }
+}
+@keyframes leaf-bloom {
+  0%, 35% { transform: scale(0) rotate(-25deg); opacity: 0; }
+  55% { transform: scale(1) rotate(0deg); opacity: 1; }
+  80% { transform: scale(1) rotate(0deg); opacity: 1; }
+  100% { transform: scale(0) rotate(-25deg); opacity: 0; }
+}
+.leaf-sprout.is-static .leaf-sprout-stem { stroke-dashoffset: 0; animation: none; }
+.leaf-sprout.is-static .leaf-sprout-leaf { transform: scale(1) rotate(0deg); opacity: 1; animation: none; }
+@media (prefers-reduced-motion: reduce){
+  .leaf-sprout-stem, .leaf-sprout-leaf { animation: none; }
+  .leaf-sprout-stem { stroke-dashoffset: 0; }
+  .leaf-sprout-leaf { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.hero { display: flex; flex-direction: column; justify-content: center; min-height: 60vh; }
+.hero .eyebrow { font-family: var(--display); font-size: 13px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--accent); margin-bottom: 22px; }
+.hero h1 { font-family: var(--display); font-weight: 700; font-size: clamp(42px,8vw,104px); line-height: 0.98; letter-spacing: -0.03em; margin-bottom: 26px; overflow-wrap: break-word; }
+.hero h1 em { font-style: normal; color: var(--ink-dim); text-shadow: 0 0 0.3em rgba(31,138,76,0.22); }
+.hero p { max-width: 520px; font-size: clamp(15px,2vw,18px); color: var(--ink-dim); line-height: 1.6; }
+.hero .scroll-hint { margin-top: 56px; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); display: flex; align-items: center; gap: 10px; }
+.hero .scroll-hint::before { content: ''; width: 34px; height: 1px; background: var(--accent); }
+.section { padding: 8px 0; }
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 18px; margin-bottom: 54px; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
+.section-head .idx { font-family: var(--display); font-size: 13px; color: var(--accent); letter-spacing: 0.1em; }
+.section-head h2 { font-family: var(--display); font-weight: 600; font-size: clamp(24px,4vw,40px); letter-spacing: -0.02em; min-width: 0; overflow-wrap: break-word; }
+.section-head .count { margin-left: auto; font-size: 13px; color: var(--ink-dim); }
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); }
+
+/* Bento block: a group of exactly 3 cards — first takes a tall left
+   slot, the next 2 stack on the right. Rows are hand-authored in
+   projects.js (tdLayout), rendered by App.jsx — see the 'trio' /
+   'trio-reverse' / 'wide' row types there.
+
+   grid-template-columns is a plain literal fr number, not calc() —
+   calc() with nested var() division inside grid-template-columns
+   turned out to be too fragile (browsers dropped the whole declaration
+   as invalid, collapsing the grid to a single column). To retune it
+   by hand when the "hero" clip in a group changes:
+     column-1-fr = 2 × (clip width / clip height) / (side width / side height)
+   e.g. for a 726×1280 clip against 1:1 side cards: 2×(726/1280)/(1/1) ≈ 1.13
+   `aspect-ratio` custom properties are fine as plain var() substitution
+   (no calc/division), so those stay tunable via --td-side-ratio. */
+.grid-bento {
+  --td-side-ratio: 1 / 1; /* right-column cards' shape — matches the real 1080×1080 square clips */
+  grid-template-columns: 1.13fr 1fr; /* hand-computed for a 726×1280 first clip, see formula above */
+  grid-auto-rows: 1fr;
+}
+.grid-bento .card:first-child { grid-row: 1 / span 2; aspect-ratio: 726 / 1280; }
+.grid-bento .card:not(:first-child) { aspect-ratio: var(--td-side-ratio); }
+.grid-bento .card:first-child .thumb-video video,
+.grid-bento .card:first-child .thumb-image img { object-fit: contain; }
+@media (max-width: 640px) {
+  .grid-bento { grid-template-columns: 1fr; }
+  .grid-bento .card:first-child { grid-row: auto; aspect-ratio: 726 / 1280; }
+}
+
+/* A hero card whose real content doesn't match the tall slot's portrait
+   ratio (e.g. a square photo) — crop instead of leaving a big letterbox
+   gap. Opt-in per row via `cropHero: true` in projects.js. */
+.grid-bento--crop-hero .card:first-child .thumb-video video,
+.grid-bento--crop-hero .card:first-child .thumb-image img,
+.grid-bento-reverse.grid-bento--crop-hero .card:nth-child(3) .thumb-video video,
+.grid-bento-reverse.grid-bento--crop-hero .card:nth-child(3) .thumb-image img { object-fit: cover; }
+
+/* Mirrored bento: 2 square cards stacked on the LEFT, tall card on the
+   RIGHT — the reverse of .grid-bento. Placement is fully explicit
+   (grid-column/grid-row on each nth-child) rather than relying on
+   auto-placement order: auto-placement only works for "spanning item
+   first" (.grid-bento's case), because it can stake its claim on a
+   column before the other items fill up the row cells it needs. With
+   the spanning item LAST, the other two would already have consumed
+   both columns' first row by the time it's placed, and grid would push
+   it into new implicit rows instead of spanning the columns as
+   intended — hence spelling out every card's position by hand here. */
+.grid-bento-reverse {
+  --td-side-ratio: 1 / 1;
+  grid-template-columns: 1fr 1.13fr;
+  grid-auto-rows: 1fr;
+}
+.grid-bento-reverse .card:nth-child(1) { grid-column: 1; grid-row: 1; aspect-ratio: var(--td-side-ratio); }
+.grid-bento-reverse .card:nth-child(2) { grid-column: 1; grid-row: 2; aspect-ratio: var(--td-side-ratio); }
+.grid-bento-reverse .card:nth-child(3) {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  aspect-ratio: 726 / 1280;
+}
+.grid-bento-reverse .card:nth-child(3) .thumb-video video,
+.grid-bento-reverse .card:nth-child(3) .thumb-image img { object-fit: contain; }
+@media (max-width: 640px) {
+  .grid-bento-reverse { grid-template-columns: 1fr; }
+  .grid-bento-reverse .card:nth-child(1),
+  .grid-bento-reverse .card:nth-child(2) { grid-column: 1; grid-row: auto; }
+  .grid-bento-reverse .card:nth-child(3) { grid-column: 1; grid-row: auto; aspect-ratio: 726 / 1280; }
+}
+
+/* Wide block: the landscape clip, no card chrome — just the video
+   itself, always playing, filling the full row width. Ratio matches
+   the real clip (1280×853 ≈ 3:2) so cover never has to crop. */
+.grid-bento-wide { display: block; }
+.grid-bento-wide .wide-media {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3/2;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
+/* Consistent gap between ANY two stacked TD rows (trio, trio-reverse,
+   or wide) — not just bento-to-bento. */
+#td .grid + .grid { margin-top: 18px; }
+.card { position: relative; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); perspective: 1200px; transition: box-shadow 0.4s, border-color 0.4s; }
+.card:hover, .card:focus-within { border-color: var(--accent); box-shadow: 0 18px 40px -18px rgba(17,19,17,0.25); }
+/* No text layer, no border/hover chrome — just the media, autoplaying
+   if it's video. Grid-slot sizing (aspect-ratio, tall/square placement)
+   still comes from the base .card rules above, unaffected. */
+.card--plain { border-color: transparent; }
+.card--plain:hover, .card--plain:focus-within { border-color: transparent; box-shadow: none; }
+
+/* Media: always rendered, full-fit, never moves — z-index 1, the base layer. */
+.card-media { position: absolute; inset: 0; z-index: 1; }
+.card .thumb { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 34px; font-weight: 700; color: rgba(255,255,255,0.92); position: relative; overflow: hidden; }
+.card .thumb::after { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 90% at 30% 20%, rgba(255,255,255,0.18), transparent 60%); }
+
+/* Text: sits above the media (z-index 2) and IS the thing that flips —
+   at rest it fully covers the card; on hover/focus it rotates away like
+   a lid, so it visibly floats above the media mid-animation instead of
+   swapping faces with it. backface-visibility hides it once it passes
+   90deg, uncovering the media underneath (which never itself moves). */
+.card-text-flip {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 0.7s cubic-bezier(0.4,0.15,0.2,1);
+}
+.card:hover .card-text-flip, .card:focus-within .card-text-flip { transform: rotateY(-180deg); }
+/* Text always visible, no flip — for a card whose whole point is the
+   statement itself (e.g. a pull-quote tile), not something to reveal
+   on hover. Higher specificity than the rule above so it wins
+   regardless of source order. */
+.card-text-flip.card-text-flip--static { transition: none; }
+.card:hover .card-text-flip.card-text-flip--static,
+.card:focus-within .card-text-flip.card-text-flip--static { transform: none; }
+.card-text-float { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; box-shadow: 0 16px 34px -14px rgba(17,19,17,0.35); max-height: 100%; overflow: hidden; }
+.card .tag { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; display: inline-block; }
+.card h3 { font-family: var(--display); font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+.card .desc { font-size: 13.5px; color: var(--ink-dim); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.footer { padding: 8px 0; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; align-items: flex-end; }
+.footer h3 { font-family: var(--display); font-size: clamp(28px,5vw,52px); letter-spacing: -0.02em; min-width: 0; overflow-wrap: break-word; }
+.footer h3 a { color: var(--accent); }
+.footer .meta { font-size: 13px; color: var(--ink-dim); }
+@media (prefers-reduced-motion: reduce){ .card-text-flip { transition: none; } }
+
+/* ---------- Video cards ---------- */
+.card.is-clickable { cursor: pointer; }
+.thumb-video { background: #eceee9; }
+.thumb-video video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb-image { background: #eceee9; }
+.thumb-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Corner badge sitting on the text-flip layer (see Card.jsx) — overlays
+   the floating text rather than the media, and rotates away WITH the
+   text on hover/focus since it shares that same rotating element. */
+.play-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid var(--line);
+  color: var(--accent);
+  font-size: 15px;
+  padding-left: 2px;
+}
+.card.is-clickable:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* ---------- Lightbox ---------- */
+.lightbox { position: fixed; inset: 0; z-index: 50; background: rgba(17,19,17,0.55); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: clamp(16px,4vw,56px); animation: fade 0.25s ease; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.lightbox-inner { width: min(1000px, 100%); background: var(--bg-0); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 30px 80px -20px rgba(17,19,17,0.4); }
+.lightbox-inner video { width: 100%; display: block; background: #000; max-height: 70vh; }
+.lightbox-meta { padding: 22px 26px 28px; }
+.lightbox-meta h3 { font-family: var(--display); font-size: 22px; margin: 6px 0 8px; }
+.lightbox-meta p { color: var(--ink-dim); font-size: 14.5px; line-height: 1.6; max-width: 640px; }
+.lightbox-close { position: absolute; top: 20px; right: 24px; z-index: 51; width: 44px; height: 44px; border-radius: 50%; background: var(--bg-0); border: 1px solid var(--line); color: var(--ink); font-size: 26px; line-height: 1; cursor: pointer; transition: background 0.3s, color 0.3s; }
+.lightbox-close:hover { background: var(--accent); color: #fff; }
