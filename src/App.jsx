@@ -10,9 +10,12 @@ import ScrambleWord from './ScrambleWord';
 import { tdProjects, tdLayout } from './projects';
 import profileImg from './prof_thumbnail.png';
 
+// An item without an href renders as plain text, not a link. "Audio Visual
+// Artist" is a descriptor rather than a destination -- it only ever jumped to
+// the copyright footer, which read as a dead link.
 const NAV_LINKS = [
   { href: '#td', label: 'TouchDesigner' },
-  { href: '#contact', label: 'Audio Visual Artist' },
+  { label: 'Audio Visual Artist' },
 ];
 
 export default function App() {
@@ -66,7 +69,15 @@ export default function App() {
     <>
       <Background3D />
       <nav className="nav">
-        <div className="mark"><span>TERRA</span>FEMME</div>
+        <a
+          className="mark"
+          href="https://github.com/terra-femme"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Terra Femme on GitHub"
+        >
+          <span>TERRA</span>FEMME
+        </a>
         <div className="links">
           <ScrambleNav links={NAV_LINKS} />
         </div>
