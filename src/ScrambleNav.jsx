@@ -139,14 +139,8 @@ export default function ScrambleNav({ links }) {
 
   return (
     <>
-      {links.map((link, i) => (
-        <a
-          key={link.href}
-          href={link.href}
-          aria-label={link.label}
-          onMouseEnter={() => handleHoverSweep(i)}
-          onFocus={() => handleHoverSweep(i)}
-        >
+      {links.map((link, i) => {
+        const letters = (
           <span className="scramble-word" aria-hidden="true">
             {displays[i].map((char, j) => {
               const pulse = pulses[`${i}-${j}`];
@@ -161,8 +155,31 @@ export default function ScrambleNav({ links }) {
               );
             })}
           </span>
-        </a>
-      ))}
+        );
+
+        // No href means this is a label, not a destination: render inert text
+        // with no hover sweep, so nothing suggests it can be clicked. It still
+        // takes part in the passive auto-cycle.
+        if (!link.href) {
+          return (
+            <span key={link.label} className="nav-static" aria-label={link.label}>
+              {letters}
+            </span>
+          );
+        }
+
+        return (
+          <a
+            key={link.href}
+            href={link.href}
+            aria-label={link.label}
+            onMouseEnter={() => handleHoverSweep(i)}
+            onFocus={() => handleHoverSweep(i)}
+          >
+            {letters}
+          </a>
+        );
+      })}
     </>
   );
 }

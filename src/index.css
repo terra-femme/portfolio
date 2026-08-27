@@ -27,6 +27,8 @@ a { color: inherit; text-decoration: none; }
 .nav .links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-dim); }
 .nav .links a { transition: color 0.25s; }
 .nav .links a:hover { color: var(--ink); }
+/* Non-link nav labels: no pointer, no hover colour shift. */
+.nav .links .nav-static { cursor: default; }
 .scramble-word { display: inline-flex; perspective: 240px; }
 .scramble-letter { display: inline-block; transform-style: preserve-3d; }
 .letter-bubble, .letter-bubble-glow {
