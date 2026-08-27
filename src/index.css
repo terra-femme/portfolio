@@ -62,9 +62,15 @@ a { color: inherit; text-decoration: none; }
 .profile-panel {
   position: sticky;
   top: var(--nav-clear);
-  /* Capped to the viewport so the panel stays fully visible while stuck.
-     The bio below scrolls inside it rather than pushing the panel taller. */
+  /* Stays stuck, but never taller than the viewport. THE PANEL ITSELF is the
+     single scroll container: if the content can't fit (short window, zoomed in),
+     a scrollbar appears here so everything stays reachable. Do not make a child
+     the flexible one -- that collapses it to 0px instead of scrolling. */
   max-height: calc(100vh - var(--nav-clear) - 28px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -74,10 +80,20 @@ a { color: inherit; text-decoration: none; }
   border: 1px solid var(--line);
   border-radius: 22px;
 }
-/* Everything except the bio keeps its natural size; only .how-i-build absorbs
-   the leftover space and scrolls, so the photo and sprout never get squashed. */
-.profile-panel > :not(.how-i-build) { flex-shrink: 0; }
-.profile-photo { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 16px; }
+/* No child may shrink -- the panel scrolls instead. */
+.profile-panel > * { flex-shrink: 0; }
+.profile-panel::-webkit-scrollbar { width: 6px; }
+.profile-panel::-webkit-scrollbar-track { background: transparent; }
+.profile-panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+.profile-panel::-webkit-scrollbar-thumb:hover { background: var(--ink-dim); }
+/* Scales with viewport height: stays square, shrinks on short windows so the
+   bio still gets room before the panel has to scroll. */
+.profile-photo {
+  width: min(100%, clamp(88px, 26vh, 260px));
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 16px;
+}
 .profile-caption { font-family: var(--display); font-weight: 600; font-size: 14.5px; text-align: center; color: var(--ink); }
 .profile-panel hr { width: 100%; border: none; border-top: 1px solid var(--line); }
 .sidebar-cta { font-family: var(--display); font-weight: 600; font-size: 15px; color: var(--accent); text-align: center; }
@@ -87,21 +103,7 @@ a { color: inherit; text-decoration: none; }
   flex-direction: column;
   gap: 14px;
   text-align: left;
-  /* min-height: 0 lets this flex child shrink below its content height,
-     which is what allows overflow-y to actually engage. */
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding-right: 10px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
 }
-.how-i-build::-webkit-scrollbar { width: 6px; }
-.how-i-build::-webkit-scrollbar-track { background: transparent; }
-.how-i-build::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
-.how-i-build::-webkit-scrollbar-thumb:hover { background: var(--ink-dim); }
-.how-i-build h2 { position: sticky; top: 0; background: var(--bg-0); padding-bottom: 4px; }
 .how-i-build h2 { font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: -0.01em; color: var(--ink); }
 .how-i-build p { font-size: 13.5px; line-height: 1.62; color: var(--ink-dim); }
 .how-i-build strong { font-family: var(--display); font-weight: 600; color: var(--ink); }
@@ -119,9 +121,8 @@ a { color: inherit; text-decoration: none; }
 .social-links svg { width: 17px; height: 17px; }
 @media (max-width: 900px){
   .page-container { grid-template-columns: 1fr; }
-  .profile-panel { position: static; max-height: none; }
-  .how-i-build { overflow-y: visible; padding-right: 0; }
-  .how-i-build h2 { position: static; }
+  .profile-panel { position: static; max-height: none; overflow-y: visible; }
+  .profile-photo { width: min(100%, 260px); }
 }
 
 /* ---------- Right-side content column ---------- */
