@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
 import Background3D from './Background3D';
 import Card from './Card';
@@ -17,6 +17,7 @@ const NAV_LINKS = [
 
 export default function App() {
   const [active, setActive] = useState(null); // currently expanded video
+  const panelRef = useRef(null);
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -25,6 +26,40 @@ export default function App() {
     const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
     requestAnimationFrame(raf);
     return () => lenis.destroy();
+  }, []);
+
+  // Lenis hijacks the wheel globally, so the sticky profile panel would never
+  // scroll under the cursor on its own. data-lenis-prevent tells Lenis to leave
+  // wheel events inside the panel alone, handing them back to the browser's
+  // native scrolling for that box. Combined with overscroll-behavior: contain,
+  // hovering the panel scrolls the panel; moving off it scrolls the page again.
+  //
+  // Applied only while the panel actually overflows -- otherwise hovering it
+  // would be a dead zone where the wheel does nothing at all.
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    const sync = () => {
+      const overflows = panel.scrollHeight > panel.clientHeight + 1;
+      panel.toggleAttribute('data-lenis-prevent', overflows);
+      if (import.meta.env.DEV) {
+        console.log('[profile-panel] overflows=%s scrollH=%d clientH=%d',
+          overflows, panel.scrollHeight, panel.clientHeight);
+      }
+    };
+
+    // pointerenter is the trigger that matters: it re-decides the instant the
+    // cursor arrives, so the answer is never stale. A ResizeObserver alone was
+    // unreliable here -- it reported the pre-layout height and left the panel
+    // trapping the wheel after it had stopped overflowing.
+    sync();
+    panel.addEventListener('pointerenter', sync);
+    window.addEventListener('resize', sync);
+    return () => {
+      panel.removeEventListener('pointerenter', sync);
+      window.removeEventListener('resize', sync);
+    };
   }, []);
 
   return (
@@ -39,7 +74,7 @@ export default function App() {
 
       <main className="content">
         <div className="page-container">
-          <aside className="profile-panel">
+          <aside className="profile-panel" ref={panelRef}>
             <img className="profile-photo" src={profileImg} alt="Portrait" />
             <p className="profile-caption">Founder of Terra Femme Tech</p>
             <hr />
