@@ -46,6 +46,51 @@ export default function App() {
             <SocialLinks />
             <LeafSprout />
             <p className="sidebar-cta">Let&rsquo;s build something.</p>
+            <hr />
+
+            <section className="how-i-build">
+              <h2>How I build</h2>
+
+              <p>
+                <strong>Agentic, on Azure.</strong> I design systems where AI agents do
+                real work inside a pipeline &mdash; orchestration, evaluation, structured
+                extraction &mdash; not chat bolted onto a form. Microsoft Certified:{' '}
+                <strong>Azure AI Engineer Associate (AI-102)</strong>.
+              </p>
+
+              <p>
+                <strong>Human-in-the-loop by default.</strong> The interesting question
+                isn&rsquo;t how much a model can do alone, it&rsquo;s where a person
+                belongs in the loop and what the handoff should feel like. I build for
+                collaboration, with the seams visible on purpose.
+              </p>
+
+              <p>
+                <strong>Governance as design, not paperwork.</strong> Provenance,
+                escalation paths, and knowing what a system should refuse are architecture
+                decisions. I write and teach this &mdash; see{' '}
+                <a
+                  href="https://github.com/terra-femme/AI_Enablement"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  AI_Enablement
+                </a>
+                . <strong>IAPP AI Governance Professional (AIGP) in progress.</strong>
+              </p>
+
+              <p>
+                <strong>Workflows and apps.</strong> Most of what I ship is the
+                unglamorous middle &mdash; the pipeline, the scheduler, the thing that
+                reconciles four APIs that disagree.
+              </p>
+
+              <p>
+                <strong>Digital media assets.</strong> Motion, 3D, and visual work that
+                unleashes creativity for education or marketing &mdash; same rigor,
+                pointed at the things people actually want to look at.
+              </p>
+            </section>
           </aside>
 
           <div className="frames">
