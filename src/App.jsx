@@ -66,7 +66,15 @@ export default function App() {
     <>
       <Background3D />
       <nav className="nav">
-        <div className="mark"><span>TERRA</span>FEMME</div>
+        <a
+          className="mark"
+          href="https://github.com/terra-femme"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Terra Femme on GitHub"
+        >
+          <span>TERRA</span>FEMME
+        </a>
         <div className="links">
           <ScrambleNav links={NAV_LINKS} />
         </div>
