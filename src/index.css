@@ -60,8 +60,11 @@ a { color: inherit; text-decoration: none; }
 }
 .page-container > * { min-width: 0; }
 .profile-panel {
-  /* Not sticky: the "How I build" block makes this taller than the viewport,
-     so a sticky panel would clip its lower paragraphs. Scrolls with the page. */
+  position: sticky;
+  top: var(--nav-clear);
+  /* Capped to the viewport so the panel stays fully visible while stuck.
+     The bio below scrolls inside it rather than pushing the panel taller. */
+  max-height: calc(100vh - var(--nav-clear) - 28px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -71,11 +74,34 @@ a { color: inherit; text-decoration: none; }
   border: 1px solid var(--line);
   border-radius: 22px;
 }
+/* Everything except the bio keeps its natural size; only .how-i-build absorbs
+   the leftover space and scrolls, so the photo and sprout never get squashed. */
+.profile-panel > :not(.how-i-build) { flex-shrink: 0; }
 .profile-photo { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 16px; }
 .profile-caption { font-family: var(--display); font-weight: 600; font-size: 14.5px; text-align: center; color: var(--ink); }
 .profile-panel hr { width: 100%; border: none; border-top: 1px solid var(--line); }
 .sidebar-cta { font-family: var(--display); font-weight: 600; font-size: 15px; color: var(--accent); text-align: center; }
-.how-i-build { align-self: stretch; display: flex; flex-direction: column; gap: 14px; text-align: left; }
+.how-i-build {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+  /* min-height: 0 lets this flex child shrink below its content height,
+     which is what allows overflow-y to actually engage. */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.how-i-build::-webkit-scrollbar { width: 6px; }
+.how-i-build::-webkit-scrollbar-track { background: transparent; }
+.how-i-build::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+.how-i-build::-webkit-scrollbar-thumb:hover { background: var(--ink-dim); }
+.how-i-build h2 { position: sticky; top: 0; background: var(--bg-0); padding-bottom: 4px; }
 .how-i-build h2 { font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: -0.01em; color: var(--ink); }
 .how-i-build p { font-size: 13.5px; line-height: 1.62; color: var(--ink-dim); }
 .how-i-build strong { font-family: var(--display); font-weight: 600; color: var(--ink); }
@@ -93,6 +119,9 @@ a { color: inherit; text-decoration: none; }
 .social-links svg { width: 17px; height: 17px; }
 @media (max-width: 900px){
   .page-container { grid-template-columns: 1fr; }
+  .profile-panel { position: static; max-height: none; }
+  .how-i-build { overflow-y: visible; padding-right: 0; }
+  .how-i-build h2 { position: static; }
 }
 
 /* ---------- Right-side content column ---------- */
