@@ -161,8 +161,8 @@ export default function Dashboard() {
         <div className="nav-foot">
           <a className="nav-back" href="./">&larr; Back to portfolio</a>
           <p className="nav-note">
-            Demonstration report. All figures are synthetic — no real customer,
-            patient or billing data appears anywhere in this dashboard.
+            Demonstration report. All figures are synthetic. No real customer, patient or
+            billing data appears anywhere in this dashboard.
           </p>
         </div>
       </aside>
@@ -213,7 +213,7 @@ export default function Dashboard() {
         <section className="dash-intro">
           <p>
             As an <strong>Azure AI Engineer</strong>, working closely with M365 and the
-            <strong> Power Platform</strong> is inevitable &mdash; and my skills with{' '}
+            <strong> Power Platform</strong> is inevitable and my skills with{' '}
             <strong>Power BI</strong> and data visualisation are constantly being refined.
           </p>
         </section>

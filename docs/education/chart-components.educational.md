@@ -1,4 +1,4 @@
-# `src/dashboard/charts/*.jsx` — Educational Companion
+# `src/dashboard/charts/*.jsx`: Educational Companion
 
 Covers `LineChart`, `BarChart`, `Donut`, `HBar`, `Sparkline`, `Heatmap`, `Gauge`.
 The shared maths lives in `primitives.js` (see its own companion file).
@@ -25,7 +25,7 @@ const matrix = keys.map((_, s) =>
 **Why normalise in the chart rather than in the data files:** the data modules
 should describe *the data*, not a chart's preferred argument order. Because the
 shape is shared, a panel can switch from `<LineChart>` to `<BarChart>` by
-changing one identifier — which is exactly what happened while building the cost
+changing one identifier. Which is exactly what happened while building the cost
 page.
 
 ---
@@ -48,7 +48,7 @@ rectangle, and HTML already has excellent rectangles.
 
 **The reasoning for `Heatmap`:** `color-mix()` in CSS lets the colour ramp be
 expressed in terms of theme tokens, so the cells and the legend gradient are
-guaranteed to agree — they read the same two custom properties.
+guaranteed to agree. They read the same two custom properties.
 
 ---
 
@@ -86,7 +86,7 @@ style={{
 
 Past 60% of the width, the tooltip anchors by its right edge instead and grows
 leftward. Without this it is clipped by the panel on the last third of every
-chart — the region users hover most, because it is the most recent data.
+chart. The region users hover most, because it is the most recent data.
 
 `pointer-events: none` on the tooltip is essential: a tooltip that can receive
 the mouse steals hover from the chart underneath and flickers infinitely.
@@ -211,13 +211,13 @@ return Math.pow(t, 0.7);
 ```
 
 A linear ramp is the obvious choice and it fails on real data. The error
-heatmap's incident hour is 46 errors per 10k while normal hours are 1–15. Linear
+heatmap's incident hour is 46 errors per 10k while normal hours are 1 to 15. Linear
 mapping puts an ordinary busy hour at `15/46 = 33%` intensity, and the quiet
-majority near 2% — the map reads as empty with one bright dot.
+majority near 2%. The map reads as empty with one bright dot.
 
 `Math.pow(t, 0.7)` lifts the low end: 33% becomes 46%, and ordinary variation
 becomes visible again while the outlier still dominates. This mirrors how human
-brightness perception works — roughly a power law, not linear.
+brightness perception works. Roughly a power law, not linear.
 
 ### The layout bug that testing caught
 
@@ -258,9 +258,9 @@ semantic grouping in the markup without a nested grid.
 
 The scale runs 99.5→100, not 0→100. Truncating an axis is normally a
 data-visualisation sin because it exaggerates differences. The exception is a
-**bounded metric with a threshold**: on a 0–100 availability gauge, 99.94% and
-99.2% are the same indistinguishable sliver, and the reader's actual question —
-"are we above the line?" — becomes unanswerable.
+**bounded metric with a threshold**: on a 0 to 100 availability gauge, 99.94% and
+99.2% are the same indistinguishable sliver, and the reader's actual question.
+"are we above the line?". Becomes unanswerable.
 
 The honesty requirement is that the line must be drawn, which is what the target
 tick does:
@@ -308,7 +308,7 @@ color={r.spark[7] >= r.spark[0] ? 'var(--c-ok)' : 'var(--c-crit)'}
 ```
 
 Scanning the accounts table, the red sparklines are instantly locatable. This is
-preattentive processing — colour is perceived before you consciously read
+preattentive processing. Colour is perceived before you consciously read
 anything, so it does navigational work that a number cannot.
 
 ---

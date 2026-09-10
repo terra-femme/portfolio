@@ -44,7 +44,7 @@ export default function AzureOverview() {
           />
           <Callout>
             The <strong>{fmtCurrency(peak.value)} peak on {peak.label}</strong> is
-            INC-2291 — PTU capacity throttling drove a client retry storm, and retries
+            INC-2291. PTU capacity throttling drove a client retry storm, and retries
             bill the same as first attempts. About <strong>{fmtCurrency(excess)}</strong>{' '}
             of that day was waste.
           </Callout>
@@ -84,8 +84,8 @@ export default function AzureOverview() {
 
           <Callout>
             Four of five flows originate in <strong>East US</strong>. That is the
-            single-region concentration behind INC-2291 — the other regions had nowhere
-            to fail over to.
+            single-region concentration behind INC-2291. The other regions had nowhere to
+            fail over to.
           </Callout>
         </Panel>
 
@@ -97,8 +97,8 @@ export default function AzureOverview() {
           </div>
           <Callout>
             All three SLOs are being met, but the error budget is down to
-            <strong> 68%</strong> with three weeks left in the window — almost all of it
-            spent in one incident.
+            <strong> 68%</strong> with three weeks left in the window, almost all of it spent
+            in one incident.
           </Callout>
         </Panel>
 

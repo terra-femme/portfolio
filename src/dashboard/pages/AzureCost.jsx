@@ -90,8 +90,8 @@ export default function AzureCost() {
           ]}
         />
         <Callout>
-          <strong>law-clinical-prod is the single largest line item</strong> at $5,244 —
-          more than Azure OpenAI and Cosmos DB combined — at 96% of budget and up 34%
+          <strong>law-clinical-prod is the single largest line item</strong> at $5,244,
+          more than Azure OpenAI and Cosmos DB combined, at 96% of budget and up 34%
           month over month. It is a Log Analytics workspace billed per GB ingested, and
           the pipeline is logging full prompts and responses at DEBUG level: 76 GB a day
           at $2.30/GB. Sampling non-error traces would cut roughly 60% of it without
@@ -106,8 +106,8 @@ export default function AzureCost() {
         <Callout>
           The log workspace is at <strong>89% of its 85 GB daily cap</strong>. Hitting it
           drops telemetry silently, at exactly the moment you need it. The gpt-4o PTU
-          reservation sits at 83% — that is the capacity that throttled during INC-2291,
-          so the retry storm was a symptom, not the cause.
+          reservation sits at 83%. That is the capacity that throttled during INC-2291, so
+          the retry storm was a symptom, not the cause.
         </Callout>
       </Panel>
 
@@ -162,7 +162,7 @@ export default function AzureCost() {
         <Callout>
           Compare the rate column, not the cost column. gpt-4o on provisioned throughput
           works out to <strong>$9.08 per million tokens</strong> against{' '}
-          <strong>$4.28 on standard</strong> — PTU is bought for latency guarantees and
+          <strong>$4.28 on standard</strong>. PTU is bought for latency guarantees and
           data residency, not for price, and at 83% utilisation it is not paying for
           itself yet. Meanwhile gpt-4o-mini serves 52% of all calls for $114, about 4% of
           the model bill. The entire inference line is{' '}

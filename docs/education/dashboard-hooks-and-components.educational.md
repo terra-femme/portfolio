@@ -1,10 +1,10 @@
-# `src/dashboard/components/` — Educational Companion
+# `src/dashboard/components/`: Educational Companion
 
 Covers `hooks.js`, `KpiTile.jsx`, `Panel.jsx`, and `DataTable.jsx`.
 
 ---
 
-## Part 1 — `hooks.js`
+## Part 1: `hooks.js`
 
 ### `useCountUp` and a real bug that was caught in testing
 
@@ -48,7 +48,7 @@ export function useCountUp(target, { duration = 900, delay = 0 } = {}) {
 }
 ```
 
-#### Decision 1 — elapsed time, not frame counting
+#### Decision 1: elapsed time, not frame counting
 
 The naive animation is:
 
@@ -70,7 +70,7 @@ Timing against `now - start` makes the duration mean what it says everywhere.
 `requestAnimationFrame` passes a `DOMHighResTimeStamp` as its argument for
 exactly this purpose.
 
-#### Decision 2 — easeOutCubic
+#### Decision 2: easeOutCubic
 
 ```js
 const ease = (t) => 1 - Math.pow(1 - t, 3);
@@ -82,7 +82,7 @@ ease-out starts fast and decelerates into the target. It matches the
 the cards feel like one motion system rather than two animations that happen to
 overlap.
 
-#### Decision 3 — the bug, and the `settle` timer
+#### Decision 3: the bug, and the `settle` timer
 
 **Symptom found in testing:** in an iframe, the four KPI tiles froze at
 `$1.57M`, `9%`, `$0k`, `0.0` and stayed there. The true values are `$4.82M`,
@@ -106,8 +106,8 @@ frozen *number* on an analytics dashboard is a correctness bug.
 const settle = setTimeout(() => setValue(target), delay + duration + 120);
 ```
 
-`setTimeout` is also throttled in hidden tabs, but unlike rAF it still *fires* —
-and an overdue timer runs immediately when the tab is focused again. So the true
+`setTimeout` is also throttled in hidden tabs, but unlike rAF it still *fires*,
+and an overdue timer runs immediately when the tab is focused again, so the true
 value always lands. The `+ 120` ms buffer keeps the timer from racing the final
 animation frame and causing a visible snap.
 
@@ -115,13 +115,13 @@ animation frame and causing a visible snap.
 a guarantee that the end state is reached, independent of the animation. Ask of
 every animation: *if this stops halfway, is the result wrong or just ugly?*
 
-#### Decision 4 — reduced motion returns the value, not nothing
+#### Decision 4: reduced motion returns the value, not nothing
 
 ```js
 const [value, setValue] = useState(() => (prefersReducedMotion() ? target : 0));
 ```
 
-`useState` with a function argument is the **lazy initialiser** — it runs once
+`useState` with a function argument is the **lazy initialiser**. It runs once
 on mount rather than on every render. Here it means a reduced-motion user sees
 the correct number in the very first paint, with no flash of `0`. Accessibility
 settings must never withhold content.
@@ -137,7 +137,7 @@ const seconds = Math.max(0, Math.floor((now - new Date(sinceIso).getTime()) / 10
 The only place in the dashboard that touches the real clock. The data is
 static, but a BI canvas that claims a sync time and shows a frozen string looks
 broken. A counter that advances reads as a live connection **without lying about
-the numbers** — the honest version of "live-feeling".
+the numbers**. The honest version of "live-feeling".
 
 `Math.max(0, ...)` guards a real case: if a viewer's system clock is behind the
 hard-coded ingest timestamp, the naive version renders `-3612s ago`.
@@ -154,7 +154,7 @@ const toggle = (key) =>
 ```
 
 Clicking a **new** column starts descending. This is a small UX judgement:
-for metrics tables the implicit question is almost always "what is biggest" —
+for metrics tables the implicit question is almost always "what is biggest":
 biggest spend, worst health, most tickets. Starting ascending would make every
 user click twice.
 
@@ -164,7 +164,7 @@ for every other component on the page.
 
 ---
 
-## Part 2 — `KpiTile.jsx`
+## Part 2: `KpiTile.jsx`
 
 ### The `goodWhen` prop is the whole point
 
@@ -175,8 +175,8 @@ const healthy = goodWhen === 'up' ? rising : !rising;
 
 Two KPIs on the Azure overview:
 
-- **Spend** — up 5.9%
-- **Tokens processed** — up 5.4%
+- **Spend**. Up 5.9%
+- **Tokens processed**. Up 5.4%
 
 Same arrow, same direction, opposite meanings. Colouring both green because the
 number went up would actively mislead. Each metric declares which direction is
@@ -220,7 +220,7 @@ animated or right-aligned number in the dashboard.
 
 ---
 
-## Part 3 — `Panel.jsx`
+## Part 3: `Panel.jsx`
 
 ### Layout by intent
 
@@ -253,14 +253,14 @@ export function Callout({ children }) {
 
 Twelve characters of component for a real purpose. Every chart in this
 dashboard is followed by a sentence stating what it means. Real BI reports are
-read by people who will not derive the conclusion from the marks — and writing
+read by people who will not derive the conclusion from the marks. And writing
 the takeaway is what separates a chart from an insight. It also forces the
 author to *have* a conclusion, which is a useful discipline: a chart with no
 possible callout probably should not be on the page.
 
 ---
 
-## Part 4 — `DataTable.jsx`
+## Part 4: `DataTable.jsx`
 
 ### Sort the data, render the presentation
 
@@ -274,7 +274,7 @@ This split is the entire design.
 **The bug this prevents:** sorting formatted strings. `"$9,800"` sorts *above*
 `"$12,400"` because `'9' > '1'` lexicographically. Currency, percentages, and
 dates all break this way, and the failure looks like a data problem rather than
-a sorting problem — the numbers are right, they are just in the wrong order.
+a sorting problem. The numbers are right, they are just in the wrong order.
 
 ### Accessibility
 
@@ -286,7 +286,7 @@ a sorting problem — the numbers are right, they are just in the wrong order.
 - `aria-sort` announces sort state to screen readers.
 - The clickable element is a real `<button>`, not a `<th onClick>`. Buttons are
   keyboard-focusable, respond to Enter and Space, and are announced as
-  interactive — all of which a click handler on a `<th>` gets none of.
+  interactive. All of which a click handler on a `<th>` gets none of.
 - `type="button"` prevents form submission if the table is ever nested in a form.
 
 ### The key fallback chain
@@ -295,7 +295,7 @@ a sorting problem — the numbers are right, they are just in the wrong order.
 key={row.id ?? row.name ?? row.resource ?? row.model ?? i}
 ```
 
-`??` is nullish coalescing — it falls through on `null`/`undefined` only, unlike
+`??` is nullish coalescing. It falls through on `null`/`undefined` only, unlike
 `||`, which would also reject `0` and `''`. The chain lets one table component
 serve incidents (`id`), accounts (`name`), cost drivers (`resource`), and models
 (`model`), with the index as a last resort.
@@ -304,14 +304,14 @@ serve incidents (`id`), accounts (`name`), cost drivers (`resource`), and models
 
 ## ELI5
 
-- **`useCountUp`** — a number that counts up to its real value, with an alarm
+- **`useCountUp`**. A number that counts up to its real value, with an alarm
   clock set so that if the counting ever gets interrupted, the real value still
   shows up.
-- **`KpiTile`** — a big number with an arrow, where each number gets to say
+- **`KpiTile`**. A big number with an arrow, where each number gets to say
   whether "up" is good news for it.
-- **`Panel`** — the box a chart sits in; it says how wide it wants to be and the
+- **`Panel`**. The box a chart sits in; it says how wide it wants to be and the
   stylesheet decides what that means on your screen.
-- **`DataTable`** — a table you can click to sort, which is careful to sort by
+- **`DataTable`**. A table you can click to sort, which is careful to sort by
   the real numbers rather than by how they look.
 
 ---

@@ -63,7 +63,7 @@ export default function Heatmap({ rows, rowLabels, colLabels, valueLabel = 'valu
       <div className="heatmap-footer">
         <span className="heatmap-hint">
           {hover
-            ? `${rowLabels[hover.r]} · ${colLabels[hover.c]} — ${hover.value} ${valueLabel}`
+            ? `${rowLabels[hover.r]} · ${colLabels[hover.c]}: ${hover.value} ${valueLabel}`
             : `Hover a cell for detail`}
         </span>
         <span className="heatmap-scale">

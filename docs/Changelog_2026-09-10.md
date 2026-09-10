@@ -1,8 +1,8 @@
-# Changelog — 2026-09-10
+# Changelog: 2026-09-10
 
 ## Title
 
-**Added a "Power BI" analytics dashboard to the portfolio** — two multi-page BI
+**Added a "Power BI" analytics dashboard to the portfolio**. Two multi-page BI
 reports (Azure platform telemetry, client relationship health) built as a second
 Vite entry point, with hand-rolled SVG charts and synthetic data.
 
@@ -10,7 +10,7 @@ Vite entry point, with hand-rolled SVG charts and synthetic data.
 
 ## What was built
 
-- **`dashboard.html`** — second Vite entry point, deep-linkable on GitHub Pages
+- **`dashboard.html`**. Second Vite entry point, deep-linkable on GitHub Pages
 - **6 report pages** across 2 reports, with an in-dashboard sidebar nav
   - *Azure Platform*: Overview · Cost & usage · Reliability
   - *Client Health*: Portfolio · Accounts · Engagement
@@ -25,7 +25,7 @@ Vite entry point, with hand-rolled SVG charts and synthetic data.
 - **Nav link** added to the portfolio at `src/App.jsx`
 
 Bundle: **52 kB (16.8 kB gzipped)**, fully separate from the portfolio's 916 kB
-three.js bundle — visitors who never open the dashboard never download it.
+three.js bundle. Visitors who never open the dashboard never download it.
 
 ---
 
@@ -34,7 +34,7 @@ three.js bundle — visitors who never open the dashboard never download it.
 Five defects were found by actually running the build and inspecting it in a
 browser. Four were introduced by this work; one was pre-existing.
 
-### 1. KPI counters froze on partial values (correctness — the significant one)
+### 1. KPI counters froze on partial values (correctness: the significant one)
 
 KPI tiles displayed `$1.57M`, `9%`, `$0k`, `0.0` permanently. True values:
 `$4.82M`, `108%`, `$412k`, `71.4`. Two samples 2 seconds apart returned
@@ -47,7 +47,7 @@ The engagement heatmap filled the entire viewport.
 ### 3. Cost table coloured rising spend green (semantics)
 
 `+8.2%` and `+21.8%` month-over-month cost increases rendered in green
-(good), `-2.4%` in red (bad) — exactly backwards for a cost metric.
+(good), `-2.4%` in red (bad). Exactly backwards for a cost metric.
 
 ### 4. Availability delta rendered as "0.0%" (precision)
 
@@ -56,31 +56,31 @@ A 0.04 percentage-point beat against the 99.90% SLO displayed as `0.0%`.
 ### 5. Nav link rendered as "PowerBI" (pre-existing)
 
 The new nav item lost its space. Investigation showed the existing
-"Audio Visual Artist" item was already rendering as "AudioVisualArtist" — the
+"Audio Visual Artist" item was already rendering as "AudioVisualArtist". The
 bug predates this session and had simply never been noticed.
 
 ---
 
 ## Root Cause
 
-**1 — `requestAnimationFrame` suspension.** rAF only fires while the browser is
+**1. `requestAnimationFrame` suspension.** rAF only fires while the browser is
 *painting*. It is suspended for background tabs, occluded/offscreen iframes, and
 some power-saving modes. When it suspended mid-count, the last `setValue` call
 won forever. The animation was the *only* path to the correct value, so losing
 the animation meant losing the data.
 
-**2 — `aspect-ratio` in a fluid grid.** `aspect-ratio: 1` makes height a
+**2. `aspect-ratio` in a fluid grid.** `aspect-ratio: 1` makes height a
 function of width. At 24 columns each cell was ~28px wide, so squares were fine.
 At 12 columns in a full-width panel each column was ~100px, so each cell became
 100px tall. The height was unbounded because the width was.
 
-**3 — colour encoding sign instead of sentiment.** The shared class names were
+**3. Colour encoding sign instead of sentiment.** The shared class names were
 `is-up`/`is-down`, which describe *direction*. Direction and sentiment agree for
 health scores and disagree for costs.
 
-**4 — fixed `toFixed(1)`** on a metric whose meaningful precision is hundredths.
+**4. Fixed `toFixed(1)`** on a metric whose meaningful precision is hundredths.
 
-**5 — collapsed whitespace in a flex item.** `ScrambleNav` renders each letter
+**5. Collapsed whitespace in a flex item.** `ScrambleNav` renders each letter
 as its own `<span>` inside a `display: inline-flex` container. A span containing
 only a space has that space collapsed under default `white-space` handling, so
 it occupies zero width.
@@ -89,7 +89,7 @@ it occupies zero width.
 
 ## Fix
 
-**1 — a timer that guarantees the end state** (`src/dashboard/components/hooks.js`):
+**1. A timer that guarantees the end state** (`src/dashboard/components/hooks.js`):
 
 ```js
 frameRef.current = requestAnimationFrame(step);
@@ -109,7 +109,7 @@ return () => {
 };
 ```
 
-**2 — decouple cell height from column count** (`dashboard.css`):
+**2. Decouple cell height from column count** (`dashboard.css`):
 
 ```css
 .heatmap-cell {
@@ -120,7 +120,7 @@ return () => {
 }
 ```
 
-**3 — classes named for meaning, chosen per metric**:
+**3. Classes named for meaning, chosen per metric**:
 
 ```css
 .delta.is-good { color: var(--c-ok); }
@@ -129,21 +129,21 @@ return () => {
 ```
 
 ```jsx
-// AzureCost.jsx — inverted on purpose: spend going UP is bad news.
+// AzureCost.jsx: inverted on purpose, spend going UP is bad news.
 <span className={r.change >= 0 ? 'delta is-bad' : 'delta is-good'}>
 
-// ClientAccounts.jsx — health going UP is good news.
+// ClientAccounts.jsx: health going UP is good news.
 <span className={r.trend === 0 ? 'delta is-flat' : r.trend > 0 ? 'delta is-good' : 'delta is-bad'}>
 ```
 
-**4 — precision that follows the magnitude** (`KpiTile.jsx`):
+**4. Precision that follows the magnitude** (`KpiTile.jsx`):
 
 ```jsx
 {/* a 0.04pp beat against an SLO is meaningful; "0.0%" is not */}
 {Math.abs(delta).toFixed(Math.abs(delta) < 0.1 ? 2 : 1)}%
 ```
 
-**5 — one line, fixes both labels** (`src/index.css`):
+**5. One line, fixes both labels** (`src/index.css`):
 
 ```css
 /* Each letter is its own flex item inside .scramble-word, so a span holding
@@ -157,7 +157,7 @@ return () => {
 ## Education
 
 **Animation that carries information needs a non-animated guarantee.** This is
-the through-line of two separate fixes in this session — the `useCountUp` timer
+the through-line of two separate fixes in this session. The `useCountUp` timer
 and the reduced-motion `stroke-dasharray` reset. The test question for any
 animation is: *if this stops halfway, is the result ugly or is it wrong?* If the
 end state is the content, there must be a path to it that does not depend on the
@@ -166,10 +166,10 @@ animation running.
 Bug 1 is also worth remembering because of how it *fails*. `$1.57M` is not
 obviously wrong. Nothing throws, nothing logs, nothing looks broken. It is a
 confidently-presented false number, which on an analytics dashboard is the worst
-possible failure mode — strictly worse than a visible crash.
+possible failure mode. Strictly worse than a visible crash.
 
-**Colour encodes sentiment, not sign.** Two KPIs — spend up 5.9%, tokens up
-5.4% — are the same arrow with opposite meanings. Any component that colours a
+**Colour encodes sentiment, not sign.** Two KPIs. Spend up 5.9%, tokens up
+5.4%. Are the same arrow with opposite meanings. Any component that colours a
 delta needs the metric to declare which direction is healthy. The `goodWhen`
 prop on KPI tiles and the `is-good`/`is-bad` classes both exist for this.
 
@@ -200,7 +200,7 @@ pipeline, and the NPS dip. Cross-referencing is what real telemetry feels like.
    have been caught by reading the code.
 2. **Verify claims empirically when the tool allows.** The window would not
    resize, so responsive behaviour was tested by loading the dashboard in a
-   400px iframe and reading computed styles — media queries evaluate against the
+   400px iframe and reading computed styles. Media queries evaluate against the
    iframe's own viewport, so it is a real test rather than an assumption.
 3. **Don't trust a tool's success message.** `resize_window` reported success;
    `window.innerWidth` was still 1920.
@@ -223,11 +223,11 @@ pipeline, and the NPS dip. Cross-referencing is what real telemetry feels like.
   git pull origin main
   git branch -d feat/nav-github-link
   ```
-- `.claude/worktrees/` was added to `.gitignore` — worktrees live inside the repo
+- `.claude/worktrees/` was added to `.gitignore`. Worktrees live inside the repo
   per the standing workflow and would otherwise show as untracked.
 - This repo has **one** GitHub workflow (`.github/workflows/deploy.yml`, build +
   deploy to Pages). No CodeQL/Semgrep/bandit workflows are configured here,
-  despite being mentioned as a general practice — worth adding separately if you
+  despite being mentioned as a general practice. Worth adding separately if you
   want the security gate on this repo too.
 - The portfolio bundle is 916 kB (three.js + React Three Fiber). Untouched by
   this work, but it is the largest single performance item on the site.
@@ -237,7 +237,7 @@ pipeline, and the NPS dip. Cross-referencing is what real telemetry feels like.
 
 ---
 
-# Session 2 — Region map, derived cost model
+# Session 2: Region map, derived cost model
 
 ## Title
 
@@ -253,7 +253,7 @@ every figure derives from stated unit rates instead of being typed in.**
 > "3300 for a hypothetical azure cost is insane whats driving the cost? log analytics?"
 
 Correct on both counts. `aoai-prod-weu` was billed $3,180 for 96.4M gpt-4o
-tokens. At standard token pricing that is roughly $400–500 — about 7x too high.
+tokens. At standard token pricing that is roughly $400 to 500. About 7x too high.
 The data was internally consistent (the INC-2291 spike propagated correctly
 across four series) but the **unit economics were never checked**, so the first
 person to divide cost by volume caught it immediately.
@@ -261,7 +261,7 @@ person to divide cost by volume caught it immediately.
 ### 2. Charts rendered nothing when they could not measure
 
 The region map and both line charts came back as empty boxes in an offscreen
-iframe — 0 land paths, no SVG — while the donut and gauges drew fine.
+iframe. 0 land paths, no SVG. While the donut and gauges drew fine.
 
 ### 3. Map dominated the page
 
@@ -300,7 +300,7 @@ naive interpolation between projected x-coordinates always takes the long way.
 
 ## Fix
 
-**1 — derive every cost from `quantity x unit rate`** (`data/azure.js`):
+**1. Derive every cost from `quantity x unit rate`** (`data/azure.js`):
 
 ```js
 export const RATES = { logAnalyticsPerGb: 2.30, ptuPerMonth: 132, /* ... */ };
@@ -322,11 +322,11 @@ const scaled = SPEND_SHAPE.map((v) => Math.round((v * SPEND_30D) / shapeTotal));
 scaled[scaled.length - 1] += SPEND_30D - scaled.reduce((a, b) => a + b, 0);
 ```
 
-Verified end to end — service mix, daily chart, stacked trend, monthly totals,
+Verified end to end. Service mix, daily chart, stacked trend, monthly totals,
 cost-driver table and the headline KPI all equal **$22,278**; model costs equal
 the Azure OpenAI line exactly; shares sum to 1.
 
-**2 — seed the measurement synchronously** (`charts/primitives.js`):
+**2. Seed the measurement synchronously** (`charts/primitives.js`):
 
 ```js
 // Layout effect, not effect: runs after DOM mutation but BEFORE paint, so the
@@ -337,7 +337,7 @@ useLayoutEffect(() => {
 }, []);
 ```
 
-**5 — take the short way round** (`charts/RegionMap.jsx`):
+**5. Take the short way round** (`charts/RegionMap.jsx`):
 
 ```js
 let lon2 = b.lon;
@@ -352,8 +352,8 @@ else if (delta < -180) lon2 += 360;
 ## Education
 
 **Internal consistency is not the same as external plausibility.** The first
-cost model was airtight against itself — every total equalled the sum of its
-parts — and still absurd, because no number was checked against a real-world
+cost model was airtight against itself. Every total equalled the sum of its
+parts. And still absurd, because no number was checked against a real-world
 rate. Both properties have to be tested, and they fail in different ways: one
 shows up when you add a column, the other when you divide two.
 
@@ -363,7 +363,7 @@ rather than a thing to remember to re-check.
 
 **Two bugs this session had the same shape**, and it is the same shape as the
 `useCountUp` freeze from session 1: *a value that only exists if an animation or
-an observer runs*. rAF stops in background tabs; ResizeObserver stops when the
+an observer runs*. Frame callbacks stop in background tabs; ResizeObserver stops when the
 page is not painted. In all three cases the answer is to make the correct state
 reachable without the asynchronous mechanism, and let the mechanism handle only
 the enhancement.
@@ -384,7 +384,7 @@ the footprint by orders of magnitude.
 
 1. Put the assumptions in the file. `RATES` is exported and commented as
    illustrative, so a reader can check the arithmetic or swap in real prices.
-2. Derive prose figures too — the "$1,161 peak / $467 waste" callout is computed
+2. Derive prose figures too. The "$1,161 peak / $467 waste" callout is computed
    from the series, so it cannot go stale when a usage assumption changes.
 3. When a component fails to render, check whether a *sibling* renders. The
    donut working while the line chart did not is what located the bug.
@@ -396,14 +396,14 @@ the footprint by orders of magnitude.
 
 - Rates are illustrative, rounded, and pre-date any 2026 price changes I can
   verify. They are order-of-magnitude correct and the *ranking* is robust to a
-  third either way, but they are not a live price sheet — check the Azure
+  third either way, but they are not a live price sheet. Check the Azure
   pricing calculator before quoting any of it.
 - The world outline is ~250 hand-authored vertices in `charts/worldOutline.js`.
   Deliberately coarse: no borders, nothing cartographic, ~3 kB.
 
 ---
 
-# Session 3 — Flush panel tiling
+# Session 3: Flush panel tiling
 
 ## Title
 
@@ -418,7 +418,7 @@ hugged its content and left a ragged hole underneath it.
 
 Fixing the gaps then exposed two things the ragged layout had been hiding:
 
-1. **The Reliability page showed `errorTaxonomy` twice** — once as bars ("Error
+1. **The Reliability page showed `errorTaxonomy` twice**. Once as bars ("Error
    taxonomy"), once as a donut ("Failure share"). Two panels of identical data,
    and the donut left half its panel empty.
 2. **Error counts disagreed with the heatmap by 15x.** The taxonomy totalled
@@ -432,7 +432,7 @@ independent height, and the wrong one for a dashboard, where the grid is
 supposed to read as one surface.
 
 **Duplication and the 15x gap:** both are the same mistake as the original cost
-model — panels authored one at a time, each internally sensible, never
+model. Panels authored one at a time, each internally sensible, never
 cross-checked against each other.
 
 ## Fix
@@ -489,13 +489,13 @@ audit tool: a panel that cannot fill its space often should not exist.
 
 ## Notes
 
-Verified programmatically — every row on all six pages now reports
+Verified programmatically. Every row on all six pages now reports
 `ragged=0` (max panel height minus min, per row), with zero horizontal overflow
 and no panel whose content exceeds its box, at both 1920px and 396px.
 
 ---
 
-# Session 4 — Nav rename and intro block
+# Session 4: Nav rename and intro block
 
 ## Title
 
@@ -504,14 +504,14 @@ report.**
 
 ## What changed
 
-- `src/App.jsx` — nav label `Power BI` → `Dashboards`
-- `src/dashboard/Dashboard.jsx` — a two-paragraph intro block rendered by the
+- `src/App.jsx`. Nav label `Power BI` → `Dashboards`
+- `src/dashboard/Dashboard.jsx`. A two-paragraph intro block rendered by the
   shell, above the page canvas, on all six pages
 
 Copy, with the user's wording kept and two edits:
 
 > As an **Azure AI Engineer**, working closely with M365 and the **Power
-> Platform** is inevitable — and my skills with **Power BI** and data
+> Platform** is inevitable. And my skills with **Power BI** and data
 > visualisation are constantly being refined.
 
 ## Error / Issue
@@ -523,7 +523,7 @@ Power BI. It was flagged in advance but not agreed to, and the user removed it.
 **Root cause:** treating a flagged addition as an approved one, on content where
 that does not hold. Technical judgement calls (routing, chart scaling, layout)
 are reasonable to make and mention. Copy written in the user's own voice, about
-the user, on their portfolio, is not — it is theirs to author, and the correct
+the user, on their portfolio, is not. It is theirs to author, and the correct
 move was to write exactly what was given and raise the framing question
 separately.
 
@@ -533,16 +533,16 @@ the two-column layout that only existed to balance the added text.
 
 The synthetic-data disclosure was inside the removed paragraph but is not lost:
 it already appears in the sidebar ("Demonstration report. All figures are
-synthetic — no real customer, patient or billing data...") and in the footer
+synthetic. No real customer, patient or billing data...") and in the footer
 ("Synthetic data · Hand-built SVG charts · No BI vendor runtime").
 
 ## Education
 
-**Subject–verb agreement.** "my skills … is constantly being refined" → "are".
+**Subject to verb agreement.** "my skills … is constantly being refined" → "are".
 The subject is *skills*, plural; the intervening prepositional phrase ("with
 Power BI and data visualisation") does not change it. The verb agrees with the
 head noun of the subject, never with the nearest noun before it. Worth knowing as
-a rule rather than an instance — it is one of the most common agreement errors in
+a rule rather than an instance. It is one of the most common agreement errors in
 English and it shows up in application writing constantly.
 
 **Naming the Power Platform is more accurate than naming Power BI alone.** Power

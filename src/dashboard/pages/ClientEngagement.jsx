@@ -57,7 +57,7 @@ export default function ClientEngagement() {
           valueFormat={(v) => v.toFixed(1)}
         />
         <Callout>
-          SMB scores lowest but costs least to serve — the gap is self-service
+          SMB scores lowest but costs least to serve. The gap is self-service
           documentation, not headcount.
         </Callout>
       </Panel>

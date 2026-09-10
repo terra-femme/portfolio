@@ -1,4 +1,4 @@
-# `src/dashboard/charts/primitives.js` — Educational Companion
+# `src/dashboard/charts/primitives.js`: Educational Companion
 
 Covers the measurement, scaling, curve-geometry and formatting layer that every
 chart in the dashboard is built on.
@@ -12,7 +12,7 @@ no D3. That was a deliberate trade:
 
 | | Charting library | Hand-rolled SVG |
 |---|---|---|
-| Bundle cost | 50–200 kB | 0 kB beyond your own code |
+| Bundle cost | 50 to 200 kB | 0 kB beyond your own code |
 | Visual control | Fight the theme | Total |
 | Dark-mode behaviour | Often an afterthought | Yours by construction |
 | Portfolio signal | "I can call an API" | "I understand the math" |
@@ -23,7 +23,7 @@ For a portfolio piece the last two rows dominate. The whole chart layer is under
 
 ---
 
-## Section 1 — `useMeasure`
+## Section 1: `useMeasure`
 
 ```js
 export function useMeasure() {
@@ -50,14 +50,14 @@ export function useMeasure() {
 
 ### Syntax breakdown
 
-- `useRef(null)` — a mutable box that survives re-renders. Attaching it via
+- `useRef(null)`. A mutable box that survives re-renders. Attaching it via
   `<div ref={ref}>` makes React assign the DOM node to `ref.current`.
-- `ResizeObserver` — a browser API that fires whenever an observed element's box
+- `ResizeObserver`. A browser API that fires whenever an observed element's box
   changes. Unlike a `window.resize` listener, it also catches changes caused by
   *layout* (a sidebar opening, a panel reflowing), not just the window.
-- `([entry])` — array destructuring in the parameter position. The callback
+- `([entry])`. Array destructuring in the parameter position. The callback
   receives an array of entries; we observe one element, so we take the first.
-- `setBox((prev) => ...)` — the functional update form. Returning `prev`
+- `setBox((prev) => ...)`. The functional update form. Returning `prev`
   unchanged is how you tell React "nothing happened, skip the re-render".
 
 ### The theory: why not `viewBox` + `preserveAspectRatio`
@@ -68,7 +68,7 @@ The tempting shortcut for a responsive SVG is:
 <svg viewBox="0 0 800 300" preserveAspectRatio="none" width="100%"></svg>
 ```
 
-This scales the entire coordinate system to fit. Everything scales — including
+This scales the entire coordinate system to fit. Everything scales. Including
 things that should never scale:
 
 - a `stroke-width: 2` line becomes 3.4px wide on a wide screen and 1.1px on a
@@ -92,7 +92,7 @@ whole pixels *and* bailing on equality breaks the cycle at both ends.
 
 ---
 
-## Section 2 — `niceScale`
+## Section 2: `niceScale`
 
 ```js
 const rawStep = (max - min) / tickCount;
@@ -113,7 +113,7 @@ Given latency data from 206 to 3820 and a request for 5 ticks:
 - `step = 1000`
 - axis becomes `0, 1000, 2000, 3000, 4000`
 
-Without this the axis would read `206, 928, 1651, 2374, 3096` — technically
+Without this the axis would read `206, 928, 1651, 2374, 3096`. Technically
 accurate and unreadable.
 
 ### The theory
@@ -141,7 +141,7 @@ Two guards here, both earned:
 
 ---
 
-## Section 3 — `monotonePath`: the most important function here
+## Section 3: `monotonePath`: the most important function here
 
 ### The problem it solves
 
@@ -149,22 +149,22 @@ A smooth curve through data points is drawn with cubic Bézier segments, and the
 question is where to put the control points. The popular answer is a
 **Catmull-Rom spline**, which is smooth and easy. It is also *wrong for data*.
 
-Catmull-Rom **overshoots**. Feed it a series that climbs and then flattens —
-say `[10, 20, 30, 30, 30]` — and the curve bulges above 30 between the third and
+Catmull-Rom **overshoots**. Feed it a series that climbs and then flattens, say
+`[10, 20, 30, 30, 30]`, and the curve bulges above 30 between the third and
 fourth points. The chart then draws a value that never occurred.
 
 On a chart labelled "p95 latency" that is not a cosmetic issue. It is a picture
 of an SLO breach that did not happen.
 
-### The algorithm (Fritsch–Carlson, 1980)
+### The algorithm (Fritsch-Carlson, 1980)
 
-**Step 1 — secant slopes.** The straight-line slope between each pair:
+**Step 1. Secant slopes.** The straight-line slope between each pair:
 
 ```js
 slope[i] = dy[i] / dx[i];
 ```
 
-**Step 2 — initial tangents.** Average the neighbouring secants, but force a
+**Step 2. Initial tangents.** Average the neighbouring secants, but force a
 flat tangent at any local peak or trough:
 
 ```js
@@ -178,7 +178,7 @@ if (slope[i - 1] * slope[i] <= 0) {
 A negative product means the data changed direction. Flattening the tangent
 there is what stops the curve from sailing past the actual peak.
 
-**Step 3 — the monotonicity clamp.** This is the part that makes the guarantee
+**Step 3. The monotonicity clamp.** This is the part that makes the guarantee
 real:
 
 ```js
@@ -197,7 +197,7 @@ point `(a, b)` lies inside a particular region, and that the circle of radius 3
 sits safely inside it. So: if `a² + b² > 9`, project back onto that circle.
 That is exactly what `t = 3 / sqrt(s)` does.
 
-**Step 4 — Hermite to Bézier.** SVG speaks Bézier, the algorithm speaks
+**Step 4. Hermite to Bézier.** SVG speaks Bézier, the algorithm speaks
 tangents. The conversion is fixed:
 
 ```js
@@ -205,7 +205,7 @@ c1 = (x[i]   + dx/3,  y[i]   + m[i]   * dx/3)
 c2 = (x[i+1] - dx/3,  y[i+1] - m[i+1] * dx/3)
 ```
 
-The `/3` is not a tuning constant — it falls out of the algebra relating the
+The `/3` is not a tuning constant. It falls out of the algebra relating the
 cubic Hermite basis to the Bernstein basis.
 
 ### ELI5
@@ -217,7 +217,7 @@ is about to overshoot. The line still looks smooth, but it never invents a value
 
 ---
 
-## Section 4 — `arcPath`
+## Section 4: `arcPath`
 
 ```js
 const polar = (r, a) => {
@@ -240,7 +240,7 @@ const sweep = Math.min(endAngle - startAngle, Math.PI * 2 - 1e-6);
 
 An SVG arc is defined by its two endpoints. For a 360° sweep those endpoints are
 the *same point*, so the renderer has no way to know you meant "all the way
-round" — and draws nothing at all. A donut with a single 100% segment
+round". And draws nothing at all. A donut with a single 100% segment
 disappears. Clamping just short of a full turn leaves a gap of about 0.00006
 radians: mathematically present, visually invisible.
 
@@ -250,7 +250,7 @@ radians: mathematically present, visually invisible.
 const largeArc = sweep > Math.PI ? 1 : 0;
 ```
 
-Any two points on a circle can be joined two ways — the short way or the long
+Any two points on a circle can be joined two ways. The short way or the long
 way. This flag picks. Get it wrong and a 70% slice renders as the 30% slice.
 
 ---
@@ -263,7 +263,7 @@ way. This flag picks. Get it wrong and a 70% slice renders as the 30% slice.
    flat series (every value identical) from dividing by zero and rendering `NaN`
    into the DOM, which fails silently and invisibly.
 3. **Comment the *why*, not the *what*.** `slope[i] = dy[i] / dx[i]` needs no
-   comment. The Fritsch–Carlson clamp needs a paragraph.
+   comment. The Fritsch-Carlson clamp needs a paragraph.
 4. **Pure functions are testable.** Everything except `useMeasure` takes numbers
    and returns numbers or strings. `monotonePath` could be unit-tested with no
    DOM at all.
@@ -285,7 +285,7 @@ Dashboard.jsx      shell, navigation, routing
 ```
 
 Dependencies point strictly downward. `primitives.js` imports nothing from the
-project — only React — so it could be lifted into another project unchanged.
+project. Only React. So it could be lifted into another project unchanged.
 
 ---
 
@@ -295,13 +295,13 @@ project — only React — so it could be lifted into another project unchanged.
 |---|---|---|
 | Divide by zero on a flat series | `scaleLinear` | `|| 1` fallback |
 | Dropped final gridline | `niceScale` | epsilon in the loop condition |
-| Curve overshoot inventing values | `monotonePath` | Fritsch–Carlson clamp |
+| Curve overshoot inventing values | `monotonePath` | Fritsch-Carlson clamp |
 | Invisible 100% donut segment | `arcPath` | sweep clamped below 2π |
 | Inverted large slices | `arcPath` | `largeArcFlag` computed from sweep |
 | ResizeObserver feedback loop | `useMeasure` | round + bail on equality |
 | `n < 3` crashing the spline | `monotonePath` | explicit 0/1/2-point branches |
 
 **Untested edge case worth knowing about:** `monotonePath` assumes strictly
-increasing x. Every caller generates x from an array index, so this holds — but
+increasing x. Every caller generates x from an array index, so this holds. But
 it would need revisiting for a scatter plot or a time series with duplicate
 timestamps.

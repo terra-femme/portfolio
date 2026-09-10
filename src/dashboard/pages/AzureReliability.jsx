@@ -32,7 +32,7 @@ export default function AzureReliability() {
         <Callout>
           p50 barely moved during the incident (248ms &rarr; 598ms) while p99 went
           <strong> 2.9x</strong>. That gap is the signature of a queue backing up, not a
-          model getting slower — the median request was still being served fine.
+          model getting slower. The median request was still being served fine.
         </Callout>
       </Panel>
 
@@ -51,7 +51,7 @@ export default function AzureReliability() {
         <HBar rows={errorTaxonomy} valueFormat={(v) => fmtNumber(v)} showPercent />
 
         <Callout>
-          <strong>429s are {topShare}% of all errors.</strong> These are self-inflicted —
+          <strong>429s are {topShare}% of all errors.</strong> These are self-inflicted:
           capacity, not correctness. At {ERR_PER_10K.toFixed(1)} per 10k requests overall
           the platform is comfortably inside its SLO; the problem is that the failures
           are concentrated rather than spread.
@@ -67,7 +67,7 @@ export default function AzureReliability() {
           ramp="var(--c-crit)"
         />
         <Callout>
-          Monday 09:00–11:00 UTC is the hot band — the incident, but also the standing
+          Monday 09:00 to 11:00 UTC is the hot band: the incident, but also the standing
           weekly peak at {WORST_HOUR_PER_10K} per 10k. Scheduled batch jobs and
           interactive traffic are colliding.
         </Callout>

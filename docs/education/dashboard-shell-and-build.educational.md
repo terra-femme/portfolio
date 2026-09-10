@@ -1,4 +1,4 @@
-# Dashboard shell and build wiring — Educational Companion
+# Dashboard shell and build wiring: Educational Companion
 
 Covers `src/dashboard/Dashboard.jsx`, `src/dashboard/main.jsx`, `dashboard.html`,
 `vite.config.js`, and the `NAV_LINKS` change in `src/App.jsx`.
@@ -24,7 +24,7 @@ the router intercepts navigation in JavaScript. It breaks the moment anyone:
 
 In each case the browser asks the server for `/portfolio/dashboard`, no such
 file exists, and Pages returns 404. The usual workaround is a `404.html` that
-re-bootstraps the app — a hack that costs an extra redirect and briefly flashes
+re-bootstraps the app. A hack that costs an extra redirect and briefly flashes
 an error page.
 
 ### The alternative chosen
@@ -58,7 +58,7 @@ import { resolve } from 'node:path'
 input: { main: resolve(__dirname, 'index.html') }
 ```
 
-`package.json` has `"type": "module"`, so this config is an ES module — and
+`package.json` has `"type": "module"`, so this config is an ES module. And
 **`__dirname` does not exist in ESM**. That is a `ReferenceError` at build time,
 which in CI means a red deploy rather than a helpful local error.
 
@@ -70,8 +70,8 @@ const entry = (file) => fileURLToPath(new URL(file, import.meta.url))
 ```
 
 `import.meta.url` is the module's own URL; `new URL(file, base)` resolves
-relative to it; `fileURLToPath` converts `file:///C:/...` to a real path —
-which matters on Windows, where a raw file URL is not a valid path.
+relative to it; `fileURLToPath` converts `file:///C:/...` to a real path, which matters on
+Windows, where a raw file URL is not a valid path.
 
 ---
 
@@ -93,7 +93,7 @@ function parseHash(hash) {
 ### Why the hash specifically
 
 **Everything after `#` is never sent to the server.** The browser requests
-`/portfolio/dashboard.html` — a real file — and the fragment is handled entirely
+`/portfolio/dashboard.html`. A real file. And the fragment is handled entirely
 client-side. So `#/clients/accounts` survives refresh, sharing, and bookmarking
 on a static host. This is the same reason hash routing existed before the
 History API, and it remains the correct answer on hosting without rewrites.
@@ -145,7 +145,7 @@ useEffect(() => {
 
 A bare `/dashboard.html` renders the overview but claims no route, so copying
 the URL loses the page. `replaceState` rewrites the address bar **without**
-adding a history entry — using `location.hash =` here would put a redundant
+adding a history entry. Using `location.hash =` here would put a redundant
 entry in the back stack, so the back button would appear broken.
 
 ---
@@ -159,7 +159,7 @@ entry in the back stack, so the back button would appear broken.
 ```
 
 Changing a React `key` destroys the subtree and builds a new one. That is
-normally something to avoid — here it is the goal. CSS entrance animations run
+normally something to avoid. Here it is the goal. CSS entrance animations run
 on mount; without a changing key, React would reconcile the old page into the
 new one and every chart would swap its data silently with no motion at all.
 
@@ -177,7 +177,7 @@ resets). For a report dashboard that is correct behaviour.
 - `aria-expanded` announces drawer state.
 - `aria-controls` links the button to the element it operates.
 - `aria-current="page"` marks the active nav item.
-- The scrim is a real `<button>` with `tabIndex={navOpen ? 0 : -1}` — removed
+- The scrim is a real `<button>` with `tabIndex={navOpen ? 0 : -1}`. Removed
   from the tab order while closed so keyboard users don't tab into an invisible
   control.
 - Off-canvas nav uses `transform: translateX(-100%)`, not `display: none`, so it
@@ -189,15 +189,15 @@ resets). For a report dashboard that is correct behaviour.
 
 ```jsx
 <p className="nav-note">
-  Demonstration report. All figures are synthetic — no real customer,
-  patient or billing data appears anywhere in this dashboard.
+  Demonstration report. All figures are synthetic. No real customer, patient or
+  billing data appears anywhere in this dashboard.
 </p>
 ```
 
 Present in the sidebar on every page, plus the footer. The dashboard shows named
 "accounts" with revenue figures and health scores in a healthcare-adjacent
 context. Anyone can see it. Labelling synthetic data as synthetic is not
-decoration — an unlabelled mock dashboard with plausible patient-adjacent
+decoration. An unlabelled mock dashboard with plausible patient-adjacent
 figures is exactly the artefact that causes trouble later.
 
 ---
@@ -213,7 +213,7 @@ const NAV_LINKS = [
 ```
 
 `ScrambleNav` already treats an item with no `href` as inert text, so adding a
-destination was a one-line data change with no component edits — a sign the
+destination was a one-line data change with no component edits. A sign the
 existing component was factored well.
 
 The href is **relative** (`./dashboard.html`). Under the `/portfolio/` base path
@@ -227,7 +227,7 @@ The new link rendered as **"PowerBI"** with no space. Investigation showed
 space collapsed by default `white-space` handling, so it occupies zero width.
 
 The existing "Audio Visual Artist" item was already rendering as
-"AudioVisualArtist" — the bug predates this work and was simply never noticed
+"AudioVisualArtist". The bug predates this work and was simply never noticed
 on a label people read as one phrase. One line fixes both:
 
 ```css
@@ -245,7 +245,7 @@ but nobody scrutinised.
 
 The dashboard is its own web page, not a screen inside the portfolio page. That
 matters because GitHub's free hosting only knows how to hand out files that
-really exist — so a made-up address breaks, but a real file never does. Inside
+really exist. So a made-up address breaks, but a real file never does. Inside
 the dashboard, the bit of the address after the `#` says which of the six pages
 to show. The `#` part never goes to the server, so the link keeps working when
 someone refreshes it or sends it to a friend.

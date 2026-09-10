@@ -44,8 +44,8 @@ export default function ClientOverview() {
             yFormat={(v) => String(Math.round(v))}
           />
           <Callout>
-            The <strong>13-point slide from June to August</strong> is not broad —
-            it is two enterprise accounts responding to the same support backlog.
+            The <strong>13-point slide from June to August</strong> is not broad.
+            It is two enterprise accounts responding to the same support backlog.
             September&rsquo;s partial recovery followed the first exec recovery call.
           </Callout>
         </Panel>
@@ -67,7 +67,7 @@ export default function ClientOverview() {
             yFormat={(v) => '$' + fmtCompact(v, 0)}
           />
           <Callout>
-            <strong>Q4 26 carries every dollar of concentrated risk</strong> — $412k, and
+            <strong>Q4 26 carries every dollar of concentrated risk</strong>: $412k, and
             $412k of it is one account. Q1 27 onward is comparatively clean, so the next
             90 days decide the year.
           </Callout>

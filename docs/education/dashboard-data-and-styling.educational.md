@@ -1,16 +1,16 @@
-# Mock data and styling — Educational Companion
+# Mock data and styling: Educational Companion
 
 Covers `src/dashboard/data/azure.js`, `src/dashboard/data/clients.js`,
 `src/dashboard/dashboard.css`, and the pages that compose them.
 
 ---
 
-## Part 1 — Designing mock data that doesn't look mock
+## Part 1: Designing mock data that doesn't look mock
 
 Most mock data is random numbers with plausible labels, and it always reads as
 fake. Three properties separate convincing synthetic data from noise.
 
-### Property 1 — determinism
+### Property 1: determinism
 
 ```js
 const ANCHOR = new Date('2026-09-10T00:00:00Z');
@@ -20,13 +20,13 @@ No `Math.random()`, no `Date.now()` in any series. The dashboard renders
 identically on every visit, which matters practically: a screenshot in a job
 application still matches what the reviewer sees when they open the link a week
 later. A seeded generator would also be reproducible, but it can produce ugly
-shapes — and there is no reason to accept a random shape when you can author a
+shapes. And there is no reason to accept a random shape when you can author a
 good one.
 
 The anchor is fixed rather than derived from the real clock so the axis reads
 like real dates without the data drifting as the calendar advances.
 
-### Property 2 — internal consistency
+### Property 2: internal consistency
 
 This is what actually sells it. The Azure data contains one incident,
 **INC-2291** on Aug 31, and it appears in four independent places:
@@ -43,12 +43,12 @@ cross-referencing is what real telemetry feels like, and no amount of visual
 polish substitutes for it.
 
 The same technique runs through the client data: **Northwind Health Group** is
-the largest account and it is quietly failing — health 38, trend −14, 11 open
+the largest account and it is quietly failing. Health 38, trend −14, 11 open
 tickets, no contact in 34 days, renewal in 55 days. Its $412k is exactly the
 "ARR at risk" KPI, exactly the Q4 at-risk band in the renewal pipeline, and its
-survey response is the July–August dip in the NPS trend.
+survey response is the July to August dip in the NPS trend.
 
-### Property 3 — the numbers actually add up
+### Property 3: the numbers actually add up
 
 ```js
 serviceMix: 8420 + 4310 + 2980 + 2240 + 1870 + 1120 + 890 + 810 = 22,640 ✓
@@ -68,7 +68,7 @@ believing every other number on the page.
 ### The subtlety this forced
 
 The 14 listed accounts sum to $3.65M, but total ARR is $4.82M. That is not an
-error — the difference is the public-sector segment, reported in aggregate. But
+error. The difference is the public-sector segment, reported in aggregate. But
 "14 of 14 accounts" next to "All 68 accounts" reads as a contradiction, so the
 label became **"14 of 14 named accounts"** with a comment explaining the
 relationship. Consistent data still needs consistent *labelling*.
@@ -84,14 +84,14 @@ comfortably non-zero looks generated.
 
 ---
 
-## Part 2 — Styling a dark BI canvas
+## Part 2: Styling a dark BI canvas
 
 ### Why a separate stylesheet
 
 `dashboard.css` never imports `index.css`. The portfolio is a light document
 (`--bg-0: #ffffff`), the dashboard is dark (`--bg: #0b0f0d`). Sharing a
 stylesheet would mean every rule fighting the other theme with overrides. Two
-documents, two stylesheets, zero conflicts — and each bundle only ships what it
+documents, two stylesheets, zero conflicts. And each bundle only ships what it
 uses.
 
 ### Carrying the brand across a theme inversion
@@ -103,8 +103,8 @@ uses.
 
 Same hue, lifted luminance. `#1f8a4c` on `#0b0f0d` is too dark to read
 comfortably; raising lightness while holding hue keeps it recognisably the same
-green. **Brand colours are rarely portable between light and dark unchanged** —
-what transfers is the hue, not the hex.
+green. **Brand colours are rarely portable between light and dark unchanged.**
+What transfers is the hue, not the hex.
 
 ### The categorical palette
 
@@ -113,7 +113,7 @@ what transfers is the hue, not the hex.
 --c-5: #ef8fb4;  --c-6: #f5b74e;  --c-7: #86d9a4;  --c-8: #7d8fa9;
 ```
 
-Ordered so the first three — the ones most charts actually reach for — differ in
+Ordered so the first three, the ones most charts actually reach for, differ in
 **luminance as well as hue**. Hue-only palettes become unreadable for the ~8% of
 men with red/green colour vision deficiency. Varying lightness too means the
 series stay distinguishable even when the hue difference collapses.
@@ -179,7 +179,7 @@ reflows.
 
 The second rule matters and is easy to miss. The line draw-on works by hiding
 the stroke (`stroke-dashoffset: 4000`) and animating it to 0. Zeroing the
-*duration* alone would leave the line permanently hidden — the accessibility
+*duration* alone would leave the line permanently hidden. The accessibility
 preference would delete the content. Any animation that hides its element in its
 initial state needs an explicit reset here.
 
@@ -206,15 +206,15 @@ mid-animation. Documented in the source so the constraint is discoverable.
 
 ---
 
-## Part 3 — Composition in the pages
+## Part 3: Composition in the pages
 
 Pages contain no chart logic. They are declarative:
 
 ```jsx
 <Panel span={8} title="Daily spend" subtitle="Last 30 days" hint="USD">
   <LineChart rows={dailySpend} keys={['Spend']} colors={['var(--c-1)']} area
-             height={280} yFormat={(v) => '$' + fmtCompact(v, 0)} />
-  <Callout>The <strong>$1,180 peak on Aug 31</strong> is INC-2291 — …</Callout>
+             yFormat={(v) => '$' + fmtCompact(v, 0)} />
+  <Callout>The <strong>{fmtCurrency(peak.value)} peak on {peak.label}</strong> …</Callout>
 </Panel>
 ```
 
@@ -253,7 +253,7 @@ Hard-coded summary figures are how dashboards start lying after their first edit
 
 The numbers are made up, but they are made up *carefully*: one bad day in
 August shows up in the cost chart, the speed chart, the error map, and the
-incident list, all agreeing with each other — the way real data would. The
+incident list, all agreeing with each other. The way real data would. The
 colours all come from one small list at the top of the stylesheet, so changing
 the green in one place changes it everywhere. And anything that fades or slides
 in has a backup plan that puts the real value on screen even if the animation
