@@ -216,11 +216,6 @@ export default function Dashboard() {
             <strong> Power Platform</strong> is inevitable &mdash; and my skills with{' '}
             <strong>Power BI</strong> and data visualisation are constantly being refined.
           </p>
-          <p className="dash-intro-note">
-            This report is written from scratch in React and SVG rather than exported
-            from Power BI, so every chart, scale, projection and interaction on it is my
-            own code. All figures are synthetic.
-          </p>
         </section>
 
         {/* key forces a remount on navigation so every counter and chart

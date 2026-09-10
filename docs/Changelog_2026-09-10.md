@@ -513,37 +513,49 @@ Copy, with the user's wording kept and two edits:
 > As an **Azure AI Engineer**, working closely with M365 and the **Power
 > Platform** is inevitable — and my skills with **Power BI** and data
 > visualisation are constantly being refined.
->
-> This report is written from scratch in React and SVG rather than exported from
-> Power BI, so every chart, scale, projection and interaction on it is my own
-> code. All figures are synthetic.
+
+## Error / Issue
+
+A second paragraph was added to that block that the user had not asked for,
+explaining that the report is written in React and SVG rather than exported from
+Power BI. It was flagged in advance but not agreed to, and the user removed it.
+
+**Root cause:** treating a flagged addition as an approved one, on content where
+that does not hold. Technical judgement calls (routing, chart scaling, layout)
+are reasonable to make and mention. Copy written in the user's own voice, about
+the user, on their portfolio, is not — it is theirs to author, and the correct
+move was to write exactly what was given and raise the framing question
+separately.
+
+**Fix:** paragraph removed; the intro block is the user's sentence alone. The
+CSS went back to a single capped-measure paragraph (max-width 90ch) rather than
+the two-column layout that only existed to balance the added text.
+
+The synthetic-data disclosure was inside the removed paragraph but is not lost:
+it already appears in the sidebar ("Demonstration report. All figures are
+synthetic — no real customer, patient or billing data...") and in the footer
+("Synthetic data · Hand-built SVG charts · No BI vendor runtime").
 
 ## Education
 
 **Subject–verb agreement.** "my skills … is constantly being refined" → "are".
 The subject is *skills*, plural; the intervening prepositional phrase ("with
-Power BI and data visualisation") does not change it. This is one of the most
-common agreement errors in English and it is worth knowing the rule rather than
-the instance: the verb agrees with the head noun of the subject, never with the
-nearest noun before it.
+Power BI and data visualisation") does not change it. The verb agrees with the
+head noun of the subject, never with the nearest noun before it. Worth knowing as
+a rule rather than an instance — it is one of the most common agreement errors in
+English and it shows up in application writing constantly.
 
 **Naming the Power Platform is more accurate than naming Power BI alone.** Power
 BI sits inside the Power Platform alongside Power Apps, Power Automate and Power
 Pages, so referencing the platform signals product knowledge rather than tool
 familiarity. The user caught this.
 
-**The second paragraph is a credibility hedge, and a deliberate one.** The page
-is reached from a link about Power BI but is not a Power BI export. Leaving that
-ambiguous invites an awkward interview question; stating it converts the same
-fact into the stronger claim, which is that the rendering itself was built
-rather than configured.
-
-**Layout note.** The block was initially one full-width paragraph capped at a
-readable measure, which left half the band empty — the exact fault the panel grid
-had just been fixed for. Two columns, each with its own short measure, fills the
-band and keeps both readable. They stack below ~740px.
+**Announcing an addition is not the same as being asked for one.** The line
+between "make the call and mention it" and "ask first" is not about size, it is
+about whose work it is. Anything the user will personally stand behind belongs to
+them.
 
 ## Notes
 
-Verified: nav renders "Dashboards", intro stacks to one column at 400px with no
-overflow, no console errors.
+Verified: nav renders "Dashboards", intro renders the user's sentence only,
+disclosure intact in two places, no console errors.

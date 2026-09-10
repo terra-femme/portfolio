@@ -1221,16 +1221,8 @@ body {
 /* Borrows the callout's visual language (accent rule on the leading edge) so it
    reads as part of the report rather than a banner bolted on above it.
    border-inline-start rather than border-left: the accent stays on the leading
-   edge if this is ever rendered right-to-left.
-
-   Two columns on wide screens. A single centred paragraph capped at a readable
-   measure would leave half this full-width band empty -- the exact thing the
-   panel grid was just fixed to avoid -- so the positioning statement and the
-   how-it-was-built note sit side by side and each keeps its own short measure. */
+   edge if this is ever rendered right-to-left. */
 .dash-intro {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px clamp(20px, 4vw, 48px);
   margin: clamp(18px, 3vw, 30px) clamp(18px, 3vw, 30px) 0;
   padding: 15px 19px;
   border: 1px solid var(--line);
@@ -1241,18 +1233,18 @@ body {
     var(--surface);
 }
 .dash-intro p {
-  flex: 1 1 330px;      /* wraps to one column under ~2x330px + gap */
-  min-width: 0;
   margin: 0;
+  /* Capped measure: a line of body text running the full width of a 1900px
+     canvas is genuinely hard to read -- the eye loses its place on the return
+     sweep. ~90 characters is the upper end of comfortable. */
+  max-width: 90ch;
   font-size: 13.5px;
   line-height: 1.65;
   color: var(--ink-dim);
 }
 .dash-intro strong { color: var(--ink); font-weight: 600; }
-.dash-intro-note { font-size: 12.5px; color: var(--ink-faint); }
 
 @media (max-width: 620px) {
   .dash-intro { padding: 13px 15px; }
   .dash-intro p { font-size: 12.5px; }
-  .dash-intro-note { font-size: 11.5px; }
 }
