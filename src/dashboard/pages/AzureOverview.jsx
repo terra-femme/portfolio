@@ -29,6 +29,37 @@ export default function AzureOverview() {
       </div>
 
       <div className="panel-grid">
+        {/* Top-left, the position the reference dashboard puts its map in and
+            the first thing read on the page. Still span-4 so it stays a
+            supporting panel rather than the hero: it answers "where", which is
+            one question among several here. The KPI strip carries the numbers a
+            reader wants without hovering, and the bars below give the exact
+            ranking a bubble chart cannot. */}
+        <Panel span={4} title="Global footprint" subtitle="Traffic by Azure region">
+          <ul className="mini-kpis">
+            <li><span>Regions</span><strong>{regions.length}</strong></li>
+            <li><span>Requests 30d</span><strong>{REQUESTS_30D_M.toFixed(1)}<em>M</em></strong></li>
+            <li><span>In {primary.label}</span><strong>{primary.value}<em>%</em></strong></li>
+          </ul>
+
+          {/* maxHeight is a ceiling, not a target. At span-4 the panel is about
+              476px wide, so the 2.55:1 world fits at ~186px tall and fills the
+              width edge to edge. The previous 124px cap made it 316px wide
+              inside that 476px box, stranding 160px of gutter either side. */}
+          <RegionMap regions={regions} flows={trafficFlows} maxHeight={200} legend={false} />
+
+          <HBar
+            rows={regions.map((r) => ({ label: r.label, value: r.value, color: 'var(--c-2)' }))}
+            valueFormat={(v) => v + '%'}
+          />
+
+          <Callout>
+            Four of five flows originate in <strong>East US</strong>. That is the
+            single-region concentration behind INC-2291. The other regions had nowhere to
+            fail over to.
+          </Callout>
+        </Panel>
+
         <Panel
           span={8}
           title="Daily spend"
@@ -61,31 +92,6 @@ export default function AzureOverview() {
             <strong>Observability is the largest line item</strong> at{' '}
             {Math.round((observability.value / SPEND_30D) * 100)}%, ahead of every AI
             service. Model inference is 12%.
-          </Callout>
-        </Panel>
-
-        {/* The map is a supporting panel, not the hero: it answers "where", which
-            is one question among several on this page. The KPI strip above it
-            carries the numbers a reader wants without hovering anything, and the
-            bars below give the exact ranking a bubble chart cannot. */}
-        <Panel span={4} title="Global footprint" subtitle="Traffic by Azure region">
-          <ul className="mini-kpis">
-            <li><span>Regions</span><strong>{regions.length}</strong></li>
-            <li><span>Requests 30d</span><strong>{REQUESTS_30D_M.toFixed(1)}<em>M</em></strong></li>
-            <li><span>In {primary.label}</span><strong>{primary.value}<em>%</em></strong></li>
-          </ul>
-
-          <RegionMap regions={regions} flows={trafficFlows} maxHeight={124} legend={false} />
-
-          <HBar
-            rows={regions.map((r) => ({ label: r.label, value: r.value, color: 'var(--c-2)' }))}
-            valueFormat={(v) => v + '%'}
-          />
-
-          <Callout>
-            Four of five flows originate in <strong>East US</strong>. That is the
-            single-region concentration behind INC-2291. The other regions had nowhere to
-            fail over to.
           </Callout>
         </Panel>
 
