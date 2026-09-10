@@ -205,6 +205,24 @@ export default function Dashboard() {
           </div>
         </header>
 
+        {/* Sits OUTSIDE the keyed <main> below, so it doesn't replay its
+            entrance animation on every page change -- it is standing context,
+            not page content. Rendered on all six pages rather than only the
+            landing one, because every page here is independently deep-linkable
+            and a visitor may well arrive on any of them. */}
+        <section className="dash-intro">
+          <p>
+            As an <strong>Azure AI Engineer</strong>, working closely with M365 and the
+            <strong> Power Platform</strong> is inevitable &mdash; and my skills with{' '}
+            <strong>Power BI</strong> and data visualisation are constantly being refined.
+          </p>
+          <p className="dash-intro-note">
+            This report is written from scratch in React and SVG rather than exported
+            from Power BI, so every chart, scale, projection and interaction on it is my
+            own code. All figures are synthetic.
+          </p>
+        </section>
+
         {/* key forces a remount on navigation so every counter and chart
             replays its entrance animation instead of silently swapping data */}
         <main className="dash-canvas" key={`${route.report}/${route.page}`}>
