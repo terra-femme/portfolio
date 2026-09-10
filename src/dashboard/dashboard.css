@@ -1017,3 +1017,144 @@ body {
      explicit reset -- zeroing the duration alone would leave it invisible. */
   .chart-line { stroke-dasharray: none; stroke-dashoffset: 0; }
 }
+
+/* ============================================================ region map === */
+
+.map-wrap { position: relative; width: 100%; }
+/* Clipped, not visible: wrapped flow arcs are drawn twice, once running off
+   each edge, and the off-canvas halves must not spill outside the panel. */
+.map-wrap svg { display: block; overflow: hidden; margin-inline: auto; }
+
+/* Graticule and land are CONTEXT, not data. They are held at very low contrast
+   on purpose so the markers and flows are unambiguously the foreground -- a
+   busy, high-contrast basemap is the most common way a bubble map becomes
+   unreadable. */
+.map-grid line { stroke: var(--line); stroke-width: 0.5; }
+
+.map-land path {
+  fill: var(--surface-3);
+  fill-opacity: 0.75;
+  stroke: color-mix(in oklab, var(--ink-faint) 34%, transparent);
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+}
+
+.map-flow {
+  fill: none;
+  stroke: var(--c-2);
+  stroke-opacity: 0.55;
+  stroke-linecap: round;
+  /* Dashed stroke marching along the path reads as direction of travel. */
+  stroke-dasharray: 3 9;
+  animation: flow 1.9s linear infinite;
+  transition: stroke-opacity 0.18s;
+}
+.map-flow.is-dimmed { stroke-opacity: 0.12; }
+@keyframes flow { to { stroke-dashoffset: -24; } }
+
+.map-marker { cursor: pointer; }
+.map-marker.is-dimmed { opacity: 0.34; }
+.map-marker, .map-flow { transition: opacity 0.18s; }
+
+.map-dot {
+  fill: color-mix(in oklab, var(--c-1) 30%, transparent);
+  stroke: var(--c-1);
+  stroke-width: 1.5;
+}
+.map-core { fill: var(--c-1); }
+
+.map-pulse {
+  fill: none;
+  stroke: var(--c-1);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: map-pulse 2.8s ease-out infinite;
+}
+@keyframes map-pulse {
+  0%   { transform: scale(1); opacity: 0.8; }
+  70%  { transform: scale(2.6); opacity: 0; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+
+.map-tooltip {
+  position: absolute;
+  z-index: 5;
+  min-width: 132px;
+  padding: 9px 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--surface-2) 94%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  font-size: 12px;
+}
+
+.map-legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: opacity 0.16s;
+}
+.map-legend li.is-dimmed { opacity: 0.38; }
+.map-legend .legend-dot {
+  border-radius: 50%;
+  background: var(--c-1);
+  flex: 0 0 auto;
+}
+.map-legend .legend-value {
+  margin-left: 2px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+@media (max-width: 620px) {
+  /* Marching dashes and a pulsing ring are a lot of motion on a small screen
+     where the map is already tight; the static map still carries the data. */
+  .map-flow { animation: none; }
+  .map-legend { gap: 5px 14px; font-size: 11.5px; }
+}
+
+/* Panel-level KPI strip. Sits above a compact visual so the panel leads with
+   numbers -- a small map answers "where", but the reader still wants "how
+   many" without hovering anything. */
+.mini-kpis {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.mini-kpis li { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.mini-kpis span {
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mini-kpis strong {
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.mini-kpis strong em { font-style: normal; font-size: 0.6em; color: var(--ink-dim); margin-left: 1px; }

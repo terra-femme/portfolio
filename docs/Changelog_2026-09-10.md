@@ -234,3 +234,169 @@ pipeline, and the NPS dip. Cross-referencing is what real telemetry feels like.
 - Educational companions written to `docs/education/`:
   `charts-primitives`, `chart-components`, `dashboard-hooks-and-components`,
   `dashboard-shell-and-build`, `dashboard-data-and-styling`.
+
+---
+
+# Session 2 — Region map, derived cost model
+
+## Title
+
+**Added a world bubble map to the Azure overview, and rebuilt the cost model so
+every figure derives from stated unit rates instead of being typed in.**
+
+---
+
+## Error / Issue
+
+### 1. The cost data did not survive division (raised by the user)
+
+> "3300 for a hypothetical azure cost is insane whats driving the cost? log analytics?"
+
+Correct on both counts. `aoai-prod-weu` was billed $3,180 for 96.4M gpt-4o
+tokens. At standard token pricing that is roughly $400–500 — about 7x too high.
+The data was internally consistent (the INC-2291 spike propagated correctly
+across four series) but the **unit economics were never checked**, so the first
+person to divide cost by volume caught it immediately.
+
+### 2. Charts rendered nothing when they could not measure
+
+The region map and both line charts came back as empty boxes in an offscreen
+iframe — 0 land paths, no SVG — while the donut and gauges drew fine.
+
+### 3. Map dominated the page
+
+At `span-8` with a 2.55:1 aspect ratio the map was ~320px tall and the largest
+element on the overview.
+
+### 4. Map legend overflowed its container
+
+`.map-wrap` had a fixed inline height covering only the SVG, so the legend
+escaped the box and overlapped the panel callout.
+
+### 5. Flow arcs took the wrong way around the globe
+
+East US → Australia East swept east across Africa and the Indian Ocean.
+
+---
+
+## Root Cause
+
+**1.** Hand-typed totals. Nothing forced `cost` and `tokens` to be consistent
+with any rate, so they drifted independently.
+
+**2.** `ResizeObserver` only delivers callbacks during the browser's
+"update the rendering" steps. A document that is not being painted may never run
+them, so `observe()` can be called and never fire even though the element has a
+valid width the entire time. Charts that gated rendering on the first
+observation therefore rendered nothing, **permanently**. The donut survived only
+because it happened to have a `width || size` fallback.
+
+**3/4.** Layout defaults chosen before the panel had real content in it.
+
+**5.** Those two regions are 230° apart going east but only 130° going west. A
+naive interpolation between projected x-coordinates always takes the long way.
+
+---
+
+## Fix
+
+**1 — derive every cost from `quantity x unit rate`** (`data/azure.js`):
+
+```js
+export const RATES = { logAnalyticsPerGb: 2.30, ptuPerMonth: 132, /* ... */ };
+export const USAGE = { logIngestGbPerDay: 76, ptuUnits: 15, /* ... */ };
+
+const COST = {
+  logAnalytics: USAGE.logIngestGbPerDay * WINDOW_DAYS * RATES.logAnalyticsPerGb,
+  // ...
+};
+
+export const SPEND_30D = serviceMix.reduce((sum, s) => sum + s.value, 0);
+```
+
+The daily chart is then rescaled to land exactly on that headline, with the
+rounding remainder absorbed:
+
+```js
+const scaled = SPEND_SHAPE.map((v) => Math.round((v * SPEND_30D) / shapeTotal));
+scaled[scaled.length - 1] += SPEND_30D - scaled.reduce((a, b) => a + b, 0);
+```
+
+Verified end to end — service mix, daily chart, stacked trend, monthly totals,
+cost-driver table and the headline KPI all equal **$22,278**; model costs equal
+the Azure OpenAI line exactly; shares sum to 1.
+
+**2 — seed the measurement synchronously** (`charts/primitives.js`):
+
+```js
+// Layout effect, not effect: runs after DOM mutation but BEFORE paint, so the
+// measured first render replaces the empty one with no visible flash.
+useLayoutEffect(() => {
+  const rect = ref.current.getBoundingClientRect();
+  setBox({ width: Math.round(rect.width), height: Math.round(rect.height) });
+}, []);
+```
+
+**5 — take the short way round** (`charts/RegionMap.jsx`):
+
+```js
+let lon2 = b.lon;
+const delta = lon2 - a.lon;
+if (delta > 180) lon2 -= 360;
+else if (delta < -180) lon2 += 360;
+// ...then draw the curve twice, offset by a map width, and clip the SVG
+```
+
+---
+
+## Education
+
+**Internal consistency is not the same as external plausibility.** The first
+cost model was airtight against itself — every total equalled the sum of its
+parts — and still absurd, because no number was checked against a real-world
+rate. Both properties have to be tested, and they fail in different ways: one
+shows up when you add a column, the other when you divide two.
+
+**The fix for "the numbers don't agree" is to stop writing numbers.** Deriving
+totals from rates and quantities makes disagreement structurally impossible
+rather than a thing to remember to re-check.
+
+**Two bugs this session had the same shape**, and it is the same shape as the
+`useCountUp` freeze from session 1: *a value that only exists if an animation or
+an observer runs*. rAF stops in background tabs; ResizeObserver stops when the
+page is not painted. In all three cases the answer is to make the correct state
+reachable without the asynchronous mechanism, and let the mechanism handle only
+the enhancement.
+
+**The real finding the dashboard now shows** is worth stating plainly, because
+it is true of real Azure estates: inference is ~12% of spend while observability
+is ~24%. Per-GB log ingestion, provisioned search units, always-on container
+replicas and reserved Cosmos throughput bill whether or not anyone uses them.
+Token billing is genuinely usage-based and genuinely cheap by comparison.
+
+**Bubbles, not choropleth, for point-located data.** A cloud region is a
+datacenter metro. Shading all of Sweden for one datacenter in Gävle overstates
+the footprint by orders of magnitude.
+
+---
+
+## Best Practices
+
+1. Put the assumptions in the file. `RATES` is exported and commented as
+   illustrative, so a reader can check the arithmetic or swap in real prices.
+2. Derive prose figures too — the "$1,161 peak / $467 waste" callout is computed
+   from the series, so it cannot go stale when a usage assumption changes.
+3. When a component fails to render, check whether a *sibling* renders. The
+   donut working while the line chart did not is what located the bug.
+4. Prefer a sensible fallback to rendering nothing. Blank is the worst outcome.
+
+---
+
+## Notes
+
+- Rates are illustrative, rounded, and pre-date any 2026 price changes I can
+  verify. They are order-of-magnitude correct and the *ranking* is robust to a
+  third either way, but they are not a live price sheet — check the Azure
+  pricing calculator before quoting any of it.
+- The world outline is ~250 hand-authored vertices in `charts/worldOutline.js`.
+  Deliberately coarse: no borders, nothing cartographic, ~3 kB.

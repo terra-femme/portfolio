@@ -13,18 +13,45 @@
  * every viewport width.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /* ------------------------------------------------------------ measurement */
 
 /**
  * Observe an element's content box.
- * Returns [ref, { width, height }]; both are 0 until the first observation,
- * so callers must skip drawing on the first paint.
+ * Returns [ref, { width, height }].
+ *
+ * The size is SEEDED synchronously from getBoundingClientRect before the
+ * ResizeObserver is attached, and that is not an optimisation -- it is a
+ * correctness fix for a bug found in testing.
+ *
+ * ResizeObserver only delivers its callbacks during the browser's
+ * "update the rendering" steps. A document that is not being painted -- a
+ * background tab, an offscreen or occluded iframe, some power-saving modes --
+ * may never run them, so `observe()` can be called and never fire, even though
+ * the element has a perfectly good width the whole time. Charts that waited for
+ * that first observation rendered NOTHING, permanently: the line charts and the
+ * region map came back as empty boxes while the donut (which happened to have a
+ * width fallback) drew fine.
+ *
+ * Seeding removes the dependency on observer timing entirely. The first render
+ * is measured and correct; the observer then handles only subsequent resizes,
+ * which is what it is actually good at.
  */
 export function useMeasure() {
   const ref = useRef(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
+
+  // Layout effect, not effect: this runs after DOM mutation but BEFORE paint,
+  // so the measured first render replaces the empty one with no visible flash.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const width = Math.round(rect.width);
+    const height = Math.round(rect.height);
+    setBox((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
+  }, []);
 
   useEffect(() => {
     const el = ref.current;

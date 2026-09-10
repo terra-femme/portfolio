@@ -37,8 +37,9 @@ export default function AzureCost() {
           yFormat={(v) => '$' + fmtCompact(v, 0)}
         />
         <Callout>
-          Spend is up <strong>59% year over year</strong> while token volume is up 63% —
-          unit economics are improving slightly, mostly from the gpt-4o-mini shift.
+          Total spend is up <strong>57% year over year</strong>, but the total hides the
+          shape of it: <strong>observability grew 176%</strong> while platform and data
+          grew 24%. Inference is not what is scaling this bill.
         </Callout>
       </Panel>
 
@@ -54,7 +55,7 @@ export default function AzureCost() {
         />
       </Panel>
 
-      <Panel span={7} title="Top cost drivers" subtitle="Month to date, by resource">
+      <Panel span={7} title="Top cost drivers" subtitle="Last 30 days, by resource">
         <DataTable
           defaultSort="cost"
           rows={topCostDrivers}
@@ -91,8 +92,12 @@ export default function AzureCost() {
           ]}
         />
         <Callout>
-          <strong>speech-realtime-gw</strong> is at 94% of budget and up 21.8% month over
-          month. It will breach before the period closes unless the cap is raised.
+          <strong>law-clinical-prod is the single largest line item</strong> at $5,244 —
+          more than Azure OpenAI and Cosmos DB combined — at 96% of budget and up 34%
+          month over month. It is a Log Analytics workspace billed per GB ingested, and
+          the pipeline is logging full prompts and responses at DEBUG level: 76 GB a day
+          at $2.30/GB. Sampling non-error traces would cut roughly 60% of it without
+          losing incident forensics.
         </Callout>
       </Panel>
 
@@ -101,20 +106,37 @@ export default function AzureCost() {
           {quotas.map((q) => <QuotaBar key={q.name} q={q} />)}
         </ul>
         <Callout>
-          gpt-4o East US is at <strong>79% of TPM</strong>. This is the quota that
-          throttled during INC-2291 — the retry storm was a symptom, not the cause.
+          The log workspace is at <strong>89% of its 85 GB daily cap</strong>. Hitting it
+          drops telemetry silently, at exactly the moment you need it. The gpt-4o PTU
+          reservation sits at 83% — that is the capacity that throttled during INC-2291,
+          so the retry storm was a symptom, not the cause.
         </Callout>
       </Panel>
 
-      <Panel span={12} title="Model usage and unit cost" subtitle="Month to date">
+      <Panel span={12} title="Model usage and unit cost" subtitle="Last 30 days">
         <DataTable
           defaultSort="cost"
           rows={modelUsage}
           columns={[
             { key: 'model', label: 'Model', render: (r) => <span className="mono">{r.model}</span> },
+            {
+              key: 'billing',
+              label: 'Billing',
+              render: (r) => (
+                <Pill tone={r.billing.startsWith('PTU') ? 'warn' : 'neutral'}>{r.billing}</Pill>
+              ),
+            },
             { key: 'calls', label: 'Calls', align: 'right', render: (r) => fmtCompact(r.calls, 1) },
             { key: 'tokens', label: 'Tokens', align: 'right', render: (r) => r.tokens.toFixed(1) + 'M' },
             { key: 'cost', label: 'Cost', align: 'right', render: (r) => fmtCurrency(r.cost) },
+            {
+              key: 'rate',
+              label: '$ / M tokens',
+              align: 'right',
+              // Derived in the data module so the table and the callout can never
+              // quote different rates.
+              render: (r) => <span className="mono">${r.ratePerM.toFixed(2)}</span>,
+            },
             {
               key: 'p95',
               label: 'p95 latency',
@@ -140,9 +162,13 @@ export default function AzureCost() {
           ]}
         />
         <Callout>
-          gpt-4o-mini handles <strong>45% of calls for 27% of the cost</strong> of gpt-4o.
-          The routing work is paying for itself; the remaining gpt-4o traffic is worth
-          auditing for prompts that could be downgraded.
+          Compare the rate column, not the cost column. gpt-4o on provisioned throughput
+          works out to <strong>$9.08 per million tokens</strong> against{' '}
+          <strong>$4.28 on standard</strong> — PTU is bought for latency guarantees and
+          data residency, not for price, and at 83% utilisation it is not paying for
+          itself yet. Meanwhile gpt-4o-mini serves 52% of all calls for $114, about 4% of
+          the model bill. The entire inference line is{' '}
+          <strong>12% of platform spend</strong>.
         </Callout>
       </Panel>
     </div>
