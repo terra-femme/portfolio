@@ -13,8 +13,13 @@ import profileImg from './prof_thumbnail.png';
 // An item without an href renders as plain text, not a link. "Audio Visual
 // Artist" is a descriptor rather than a destination -- it only ever jumped to
 // the copyright footer, which read as a dead link.
+//
+// "Power BI" points at dashboard.html -- a second Vite entry, not a route, so
+// the link survives a refresh and a copy-paste on GitHub Pages (no rewrites).
+// Relative href keeps it correct under the /portfolio/ base path.
 const NAV_LINKS = [
   { href: '#td', label: 'TouchDesigner' },
+  { href: './dashboard.html', label: 'Power BI' },
   { label: 'Audio Visual Artist' },
 ];
 
