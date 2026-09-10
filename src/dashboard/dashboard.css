@@ -369,20 +369,38 @@ body {
 
 /* ============================================================== panels === */
 
+/* align-items: stretch (the default) rather than `start`. With `start`, a short
+   panel beside a tall one hugs its content and leaves a ragged hole underneath;
+   stretching makes every panel in a row the same height so the grid reads as one
+   tiled surface. The panel is then a flex column so its BODY can absorb that
+   extra height instead of leaving dead space inside the box. */
 .panel-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .panel {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
   padding: 18px 20px 20px;
   animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The body takes the leftover height and hands it to whichever child is the
+   designated grower (see the `flex: 1` rules further down). min-height: 0 is
+   required -- without it a flex child refuses to shrink below its content and
+   the panel overflows instead of fitting. */
+.panel-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 /* Staggered entrance. Capped at six steps -- beyond that the last panel would
    wait long enough that the page reads as slow rather than choreographed. */
@@ -425,7 +443,10 @@ body {
 }
 .panel-foot { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
 
+/* Captions, legends and footers keep their natural height -- only one element
+   per panel should stretch, or the growth is shared and nothing lines up. */
 .callout {
+  flex: 0 0 auto;
   margin-top: 14px;
   padding: 11px 13px;
   border-left: 2px solid var(--c-1);
@@ -439,7 +460,9 @@ body {
 
 /* ============================================================== charts === */
 
-.chart-wrap { position: relative; width: 100%; }
+/* Charts are the designated growers: they absorb whatever height the row gives
+   the panel, so two panels of different content lengths still end level. */
+.chart-wrap { position: relative; width: 100%; flex: 1 1 auto; min-height: 168px; }
 .chart-wrap svg { display: block; overflow: visible; }
 
 .grid-line { stroke: var(--line); stroke-width: 1; shape-rendering: crispEdges; }
@@ -655,10 +678,12 @@ body {
 }
 .gauge-tick { stroke: var(--ink); stroke-width: 2; stroke-linecap: round; opacity: 0.75; }
 
+/* The numeric readout overlays the arc. Height matches the SVG box rather than
+   a hard-coded 132, so the number stays centred when the gauge is resized. */
 .gauge-center {
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 132px;
+  aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -861,7 +886,14 @@ body {
 
 /* ========================================================== incidents === */
 
-.incident-list { display: flex; flex-direction: column; gap: 11px; }
+/* Auto-fitting grid rather than a single column: at span-12 a stacked list
+   leaves most of the row empty, and the cards are short enough to tile. */
+.incident-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(288px, 1fr));
+  gap: 11px;
+  align-content: start;
+}
 .incident {
   padding: 13px 15px;
   border: 1px solid var(--line);
@@ -1133,6 +1165,7 @@ body {
    many" without hovering anything. */
 .mini-kpis {
   list-style: none;
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
@@ -1158,3 +1191,28 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .mini-kpis strong em { font-style: normal; font-size: 0.6em; color: var(--ink-dim); margin-left: 1px; }
+
+/* ================================================ equal-height panel fill === */
+/* Each of these is the growing element inside its panel body. Centring the
+   short ones (donut, gauges, bars) puts the slack above AND below the content
+   rather than dumping it all at the bottom, which is what actually reads as
+   "empty space" to the eye. */
+
+.donut-wrap { flex: 1 1 auto; align-content: center; }
+.gauge-row { flex: 1 1 auto; align-items: center; }
+.hbar-list { flex: 1 1 auto; justify-content: center; }
+.quota-list { flex: 1 1 auto; justify-content: space-evenly; }
+.stat-list { flex: 1 1 auto; justify-content: center; }
+.incident-list { flex: 1 1 auto; }
+.watch-grid { flex: 1 1 auto; align-content: start; }
+.heatmap { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; }
+.table-wrap { flex: 1 1 auto; }
+
+/* The map panel stacks KPIs, map, bars and a caption; only the map itself
+   should absorb slack, and it stays vertically centred while doing so. */
+.map-wrap { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; }
+.mini-kpis, .map-legend { flex: 0 0 auto; }
+
+/* A table that is the only thing in its panel shouldn't stretch its rows --
+   let it sit at the top and give the slack back to the panel. */
+.panel-body > .table-wrap:only-child { align-self: stretch; }

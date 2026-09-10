@@ -18,13 +18,19 @@ export default function LineChart({
   colors = ['var(--c-1)'],
   area = false,
   stacked = false,
-  height = 260,
+  height,
   yFormat = fmtCompact,
   xTickEvery,
   baselineZero = true,
 }) {
-  const [wrapRef, { width }] = useMeasure();
+  const [wrapRef, { width, height: measured }] = useMeasure();
   const [hover, setHover] = useState(null); // index of the focused column
+
+  // `height` is now optional. When omitted the chart measures the height the
+  // flex layout gave it, so a panel stretched to match its neighbour hands that
+  // extra space to the chart instead of leaving a gap under it. A fixed height
+  // is still accepted for the rare case where a chart must not resize.
+  const h = height ?? Math.max(168, measured);
   const gradientId = useId();
 
   const PAD = { top: 16, right: 16, bottom: 28, left: 48 };
@@ -49,13 +55,11 @@ export default function LineChart({
   }, [rows, keys, stacked, baselineZero]);
 
   if (width === 0) {
-    // First paint: the ResizeObserver has not reported yet. Reserve the height
-    // so the panel doesn't visibly jolt when the chart appears.
-    return <div className="chart-wrap" ref={wrapRef} style={{ height }} />;
+    return <div className="chart-wrap" ref={wrapRef} style={height ? { height } : undefined} />;
   }
 
   const innerW = Math.max(1, width - PAD.left - PAD.right);
-  const innerH = Math.max(1, height - PAD.top - PAD.bottom);
+  const innerH = Math.max(1, h - PAD.top - PAD.bottom);
   const { matrix, plotted, scale } = model;
 
   const x = (i) => PAD.left + (rows.length === 1 ? innerW / 2 : (i / (rows.length - 1)) * innerW);
@@ -73,10 +77,10 @@ export default function LineChart({
   };
 
   return (
-    <div className="chart-wrap" ref={wrapRef} style={{ height }}>
+    <div className="chart-wrap" ref={wrapRef} style={height ? { height } : undefined}>
       <svg
         width={width}
-        height={height}
+        height={h}
         role="img"
         aria-label={`Line chart, ${rows.length} points`}
         onMouseMove={handleMove}
@@ -104,7 +108,7 @@ export default function LineChart({
         {/* x axis labels */}
         {rows.map((r, i) =>
           i % step === 0 || i === rows.length - 1 ? (
-            <text key={r.label + i} className="axis-label" x={x(i)} y={height - 8} textAnchor="middle">
+            <text key={r.label + i} className="axis-label" x={x(i)} y={h - 8} textAnchor="middle">
               {r.label}
             </text>
           ) : null

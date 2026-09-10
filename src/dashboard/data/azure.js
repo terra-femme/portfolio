@@ -293,13 +293,24 @@ export const latencyDaily = {
   })),
 };
 
-export const errorTaxonomy = [
-  { label: '429 Rate limited', value: 1284, color: 'var(--c-warn)' },
-  { label: '500 Upstream', value: 412, color: 'var(--c-crit)' },
-  { label: '408 Timeout', value: 263, color: 'var(--c-3)' },
-  { label: '400 Bad request', value: 156, color: 'var(--c-4)' },
-  { label: '401 Unauthorized', value: 88, color: 'var(--c-5)' },
-  { label: 'Content filtered', value: 74, color: 'var(--c-6)' },
+// Error volume is DERIVED from the heatmap so the two cannot disagree.
+//
+// They previously did: the taxonomy totalled 2,277 errors for the window while
+// the heatmap averaged ~8 per 10k against 43.3M requests, which implies about
+// 34,000. Two panels on the same page quoting error counts 15x apart is the
+// kind of thing a reader notices immediately, so the total is now computed from
+// the heatmap and the taxonomy just splits it by relative weight.
+//
+// Note this does not contradict the 99.94% availability SLO: Azure measures
+// availability over time windows, and most of these are 429s that clients
+// retried successfully rather than failed requests.
+const TAXONOMY_WEIGHTS = [
+  { label: '429 Rate limited', weight: 1284, color: 'var(--c-warn)' },
+  { label: '500 Upstream', weight: 412, color: 'var(--c-crit)' },
+  { label: '408 Timeout', weight: 263, color: 'var(--c-3)' },
+  { label: '400 Bad request', weight: 156, color: 'var(--c-4)' },
+  { label: '401 Unauthorized', weight: 88, color: 'var(--c-5)' },
+  { label: 'Content filtered', weight: 74, color: 'var(--c-6)' },
 ];
 
 // Errors per 10k requests: 7 days (rows, oldest first) x 24 hours (columns).
@@ -317,6 +328,24 @@ export const errorRateHeatmap = {
     [1, 2, 1, 1, 2, 3, 6, 9, 12, 15, 14, 12, 10, 12, 14, 13, 10, 8, 5, 4, 3, 2, 1, 1],
   ],
 };
+
+/** Mean errors per 10k requests across the 7x24 heatmap. */
+const HEAT_CELLS = errorRateHeatmap.rows.flat();
+export const ERR_PER_10K = HEAT_CELLS.reduce((a, b) => a + b, 0) / HEAT_CELLS.length;
+export const WORST_HOUR_PER_10K = Math.max(...HEAT_CELLS);
+
+/** Total errors implied by that rate over the window's request volume. */
+export const ERRORS_30D = Math.round(((REQUESTS_30D_M * 1e6) / 10000) * ERR_PER_10K);
+
+const weightTotal = TAXONOMY_WEIGHTS.reduce((sum, t) => sum + t.weight, 0);
+export const errorTaxonomy = TAXONOMY_WEIGHTS.map((t) => ({
+  label: t.label,
+  color: t.color,
+  value: Math.round((ERRORS_30D * t.weight) / weightTotal),
+}));
+// Absorb the rounding remainder into the largest bucket so the parts sum to the
+// whole exactly, the same way the daily spend series is reconciled.
+errorTaxonomy[0].value += ERRORS_30D - errorTaxonomy.reduce((sum, t) => sum + t.value, 0);
 
 export const incidents = [
   { id: 'INC-2301', date: 'Sep 09', severity: 'Sev 4', service: 'Cosmos DB', summary: 'RU throttling on the transcript write path', duration: 'ongoing', status: 'Monitoring' },

@@ -400,3 +400,95 @@ the footprint by orders of magnitude.
   pricing calculator before quoting any of it.
 - The world outline is ~250 hand-authored vertices in `charts/worldOutline.js`.
   Deliberately coarse: no borders, nothing cartographic, ~3 kB.
+
+---
+
+# Session 3 — Flush panel tiling
+
+## Title
+
+**Made every grid row equal height so panels tile with no dead space**, and
+removed the redundancy the gaps were hiding.
+
+## Error / Issue
+
+The reference dashboard the user supplied tiles into a tight mosaic. Mine did
+not: `.panel-grid` used `align-items: start`, so a short panel beside a tall one
+hugged its content and left a ragged hole underneath it.
+
+Fixing the gaps then exposed two things the ragged layout had been hiding:
+
+1. **The Reliability page showed `errorTaxonomy` twice** — once as bars ("Error
+   taxonomy"), once as a donut ("Failure share"). Two panels of identical data,
+   and the donut left half its panel empty.
+2. **Error counts disagreed with the heatmap by 15x.** The taxonomy totalled
+   2,277 errors for the window; the heatmap averaged ~6.9 per 10k against 43.3M
+   requests, which implies ~29,800.
+
+## Root Cause
+
+**Layout:** `align-items: start` is the right default for cards of genuinely
+independent height, and the wrong one for a dashboard, where the grid is
+supposed to read as one surface.
+
+**Duplication and the 15x gap:** both are the same mistake as the original cost
+model — panels authored one at a time, each internally sensible, never
+cross-checked against each other.
+
+## Fix
+
+Rows stretch, and the panel becomes a flex column so its body can absorb the
+extra height rather than leaving it at the bottom:
+
+```css
+.panel-grid { align-items: stretch; }
+.panel      { display: flex; flex-direction: column; }
+.panel-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+```
+
+One child per panel is then designated the grower. Charts take the slack:
+
+```css
+.chart-wrap { flex: 1 1 auto; min-height: 168px; }
+.callout    { flex: 0 0 auto; }
+```
+
+`LineChart` and `BarChart` now measure their own height instead of taking a
+fixed `height` prop, so a stretched panel genuinely hands the space to the
+chart. Short content (donut, gauges, bars) centres instead, so the slack sits
+above *and* below rather than pooling at the bottom.
+
+Error volume is now derived from the heatmap, the same way costs derive from
+rates:
+
+```js
+export const ERR_PER_10K = HEAT_CELLS.reduce((a, b) => a + b, 0) / HEAT_CELLS.length;
+export const ERRORS_30D  = Math.round(((REQUESTS_30D_M * 1e6) / 10000) * ERR_PER_10K);
+// taxonomy splits that total by relative weight; remainder absorbed into the largest
+```
+
+The duplicate donut was deleted, its slot given to a KPI strip on the taxonomy
+panel (total errors, error rate, worst hour), and the incident log promoted to
+full width as an auto-fitting card grid.
+
+## Education
+
+**`align-items: start` vs `stretch` is a design decision, not a default.**
+Independent cards want `start`; a dashboard wants `stretch`, because the row is
+meant to read as one band.
+
+**Only one element per panel should grow.** If two do, the slack is shared and
+nothing lines up. Everything else gets `flex: 0 0 auto`.
+
+**Centre short content rather than top-aligning it.** Slack split above and
+below reads as padding; the same slack all at the bottom reads as a hole.
+
+**Empty space was a symptom.** The half-empty donut panel was duplicate data,
+and squeezing the layout is what made that obvious. Layout pressure is a decent
+audit tool: a panel that cannot fill its space often should not exist.
+
+## Notes
+
+Verified programmatically — every row on all six pages now reports
+`ragged=0` (max panel height minus min, per row), with zero horizontal overflow
+and no panel whose content exceeds its box, at both 1920px and 396px.

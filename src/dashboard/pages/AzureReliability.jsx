@@ -2,13 +2,19 @@ import Panel, { Callout, Pill } from '../components/Panel';
 import LineChart from '../charts/LineChart';
 import HBar from '../charts/HBar';
 import Heatmap from '../charts/Heatmap';
-import Donut from '../charts/Donut';
-import { fmtNumber } from '../charts/primitives';
-import { latencyDaily, errorTaxonomy, errorRateHeatmap, incidents } from '../data/azure';
+import { fmtCompact, fmtNumber } from '../charts/primitives';
+import {
+  latencyDaily, errorTaxonomy, errorRateHeatmap, incidents,
+  ERRORS_30D, ERR_PER_10K, WORST_HOUR_PER_10K, REQUESTS_30D_M,
+} from '../data/azure';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 
 export default function AzureReliability() {
+  // Derived so the prose and the bars can never quote different shares.
+  const topShare = Math.round((errorTaxonomy[0].value / ERRORS_30D) * 100);
+  const errorRatePct = (ERRORS_30D / (REQUESTS_30D_M * 1e6)) * 100;
+
   return (
     <div className="panel-grid">
       <Panel
@@ -21,7 +27,6 @@ export default function AzureReliability() {
           rows={latencyDaily.rows}
           keys={latencyDaily.keys}
           colors={latencyDaily.colors}
-          height={300}
           yFormat={(v) => fmtNumber(v) + 'ms'}
         />
         <Callout>
@@ -31,11 +36,25 @@ export default function AzureReliability() {
         </Callout>
       </Panel>
 
+      {/* A "Failure share" donut used to sit on this page showing errorTaxonomy a
+          second time. Two panels of identical data is not two insights, and the
+          donut left half its panel empty -- so the bars (which carry exact counts
+          AND proportions) kept the slot, and the KPI strip fills the space with
+          figures the bars cannot show. */}
       <Panel span={5} title="Error taxonomy" subtitle="Last 30 days, by response code">
+        <ul className="mini-kpis">
+          <li><span>Total errors</span><strong>{fmtCompact(ERRORS_30D, 1)}</strong></li>
+          <li><span>Error rate</span><strong>{errorRatePct.toFixed(3)}<em>%</em></strong></li>
+          <li><span>Worst hour</span><strong>{WORST_HOUR_PER_10K}<em>/10k</em></strong></li>
+        </ul>
+
         <HBar rows={errorTaxonomy} valueFormat={(v) => fmtNumber(v)} showPercent />
+
         <Callout>
-          <strong>429s are 56% of all errors.</strong> These are self-inflicted —
-          capacity, not correctness.
+          <strong>429s are {topShare}% of all errors.</strong> These are self-inflicted —
+          capacity, not correctness. At {ERR_PER_10K.toFixed(1)} per 10k requests overall
+          the platform is comfortably inside its SLO; the problem is that the failures
+          are concentrated rather than spread.
         </Callout>
       </Panel>
 
@@ -49,20 +68,12 @@ export default function AzureReliability() {
         />
         <Callout>
           Monday 09:00–11:00 UTC is the hot band — the incident, but also the standing
-          weekly peak. Scheduled batch jobs and interactive traffic are colliding.
+          weekly peak at {WORST_HOUR_PER_10K} per 10k. Scheduled batch jobs and
+          interactive traffic are colliding.
         </Callout>
       </Panel>
 
-      <Panel span={5} title="Failure share" subtitle="Proportion of total errors">
-        <Donut
-          slices={errorTaxonomy}
-          centerLabel="Total errors"
-          valueFormat={(v) => fmtNumber(v)}
-          size={190}
-        />
-      </Panel>
-
-      <Panel span={7} title="Incident log" subtitle="Severity, duration, and status">
+      <Panel span={12} title="Incident log" subtitle="Severity, duration, and status">
         <div className="incident-list">
           {incidents.map((inc) => (
             <article className="incident" key={inc.id}>

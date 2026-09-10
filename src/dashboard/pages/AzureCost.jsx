@@ -33,7 +33,6 @@ export default function AzureCost() {
           rows={monthlySpend}
           keys={['Spend']}
           colors={['var(--c-1)']}
-          height={260}
           yFormat={(v) => '$' + fmtCompact(v, 0)}
         />
         <Callout>
@@ -50,7 +49,6 @@ export default function AzureCost() {
           colors={spendStack.colors}
           area
           stacked
-          height={260}
           yFormat={(v) => '$' + fmtCompact(v, 0)}
         />
       </Panel>

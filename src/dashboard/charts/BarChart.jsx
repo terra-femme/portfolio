@@ -12,11 +12,17 @@ export default function BarChart({
   keys = ['value'],
   colors = ['var(--c-1)'],
   stacked = false,
-  height = 260,
+  height,
   yFormat = fmtCompact,
 }) {
-  const [wrapRef, { width }] = useMeasure();
+  const [wrapRef, { width, height: measured }] = useMeasure();
   const [hover, setHover] = useState(null);
+
+  // `height` is now optional. When omitted the chart measures the height the
+  // flex layout gave it, so a panel stretched to match its neighbour hands that
+  // extra space to the chart instead of leaving a gap under it. A fixed height
+  // is still accepted for the rare case where a chart must not resize.
+  const h = height ?? Math.max(168, measured);
 
   const PAD = { top: 16, right: 16, bottom: 28, left: 48 };
 
@@ -31,10 +37,10 @@ export default function BarChart({
     return { matrix, scale: niceScale(0, Math.max(...peaks)) };
   }, [rows, keys, stacked]);
 
-  if (width === 0) return <div className="chart-wrap" ref={wrapRef} style={{ height }} />;
+  if (width === 0) return <div className="chart-wrap" ref={wrapRef} style={height ? { height } : undefined} />;
 
   const innerW = Math.max(1, width - PAD.left - PAD.right);
-  const innerH = Math.max(1, height - PAD.top - PAD.bottom);
+  const innerH = Math.max(1, h - PAD.top - PAD.bottom);
   const { matrix, scale } = model;
   const y = scaleLinear(scale.min, scale.max, PAD.top + innerH, PAD.top);
 
@@ -43,8 +49,8 @@ export default function BarChart({
   const barW = stacked ? groupW : groupW / keys.length;
 
   return (
-    <div className="chart-wrap" ref={wrapRef} style={{ height }}>
-      <svg width={width} height={height} role="img" aria-label={`Bar chart, ${rows.length} categories`}>
+    <div className="chart-wrap" ref={wrapRef} style={height ? { height } : undefined}>
+      <svg width={width} height={h} role="img" aria-label={`Bar chart, ${rows.length} categories`}>
         {scale.ticks.map((t) => (
           <g key={t}>
             <line className="grid-line" x1={PAD.left} x2={width - PAD.right} y1={y(t)} y2={y(t)} />
@@ -89,7 +95,7 @@ export default function BarChart({
                 );
               })}
 
-              <text className="axis-label" x={PAD.left + i * slot + slot / 2} y={height - 8} textAnchor="middle">
+              <text className="axis-label" x={PAD.left + i * slot + slot / 2} y={h - 8} textAnchor="middle">
                 {row.label}
               </text>
             </g>

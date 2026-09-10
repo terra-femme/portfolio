@@ -40,7 +40,6 @@ export default function AzureOverview() {
             keys={['Spend']}
             colors={['var(--c-1)']}
             area
-            height={252}
             yFormat={(v) => '$' + fmtCompact(v, 0)}
           />
           <Callout>
@@ -76,7 +75,7 @@ export default function AzureOverview() {
             <li><span>In {primary.label}</span><strong>{primary.value}<em>%</em></strong></li>
           </ul>
 
-          <RegionMap regions={regions} flows={trafficFlows} maxHeight={150} legend={false} />
+          <RegionMap regions={regions} flows={trafficFlows} maxHeight={124} legend={false} />
 
           <HBar
             rows={regions.map((r) => ({ label: r.label, value: r.value, color: 'var(--c-2)' }))}
@@ -92,7 +91,9 @@ export default function AzureOverview() {
 
         <Panel span={8} title="Service level objectives" subtitle="Rolling 30-day window">
           <div className="gauge-row">
-            {sloGauges.map((g) => <Gauge key={g.label} {...g} />)}
+            {/* Sized up so three gauges genuinely fill the row height this panel
+                inherits from its taller neighbour, rather than floating in it. */}
+            {sloGauges.map((g) => <Gauge key={g.label} {...g} size={150} />)}
           </div>
           <Callout>
             All three SLOs are being met, but the error budget is down to

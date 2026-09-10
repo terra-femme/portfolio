@@ -40,7 +40,6 @@ export default function ClientOverview() {
             keys={['NPS']}
             colors={['var(--c-2)']}
             area
-            height={250}
             baselineZero={false}
             yFormat={(v) => String(Math.round(v))}
           />
@@ -65,7 +64,6 @@ export default function ClientOverview() {
             keys={renewalPipeline.keys}
             colors={renewalPipeline.colors}
             stacked
-            height={280}
             yFormat={(v) => '$' + fmtCompact(v, 0)}
           />
           <Callout>
