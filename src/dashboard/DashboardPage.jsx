@@ -112,8 +112,8 @@ export default function DashboardPage() {
           <section className="section" id="coverage">
             <div className="section-head">
               <span className="idx">02</span>
-              <h2>Client coverage</h2>
-              <span className="count">3 pages &middot; cross-filtered</span>
+              <h2>Client lifecycle</h2>
+              <span className="count">3 pages &middot; onboarding, review, screening</span>
             </div>
 
             <p className="piece-lede">
@@ -123,12 +123,14 @@ export default function DashboardPage() {
               client&rsquo;s proprietary system.
             </p>
 
-            <div className="piece-frame">
+            {/* is-light: this piece is a white Tableau style worksheet, so the
+                frame and its chrome invert too. */}
+            <div className="piece-frame is-light">
               <div className="piece-chrome">
                 <span className="piece-dots" aria-hidden="true">
                   <span /><span /><span />
                 </span>
-                <span className="piece-url">coverage360 &middot; institutional client analytics</span>
+                <span className="piece-url">client lifecycle &middot; onboarding, review and screening</span>
                 <a
                   className="piece-open"
                   href="./dashboard.html?full=1&amp;report=coverage"
@@ -146,9 +148,9 @@ export default function DashboardPage() {
             </div>
 
             <div className="piece-caption">
-              <span><strong>Slicers</strong> region, line, tier, cross-filtering every visual</span>
-              <span><strong>Marks</strong> lollipop, RAG matrix, mandate timeline</span>
-              <span><strong>Model</strong> one 80-row fact table, every figure aggregated from it</span>
+              <span><strong>Workstreams</strong> onboarding, periodic review, emergency review, screening</span>
+              <span><strong>Health</strong> scored down from a clean file, every deduction itemised</span>
+              <span><strong>Slicers</strong> region, line, risk rating, cross-filtering every visual</span>
             </div>
           </section>
 

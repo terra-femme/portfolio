@@ -1,38 +1,33 @@
 import { useState } from 'react';
 import Lollipop from '../charts/Lollipop';
-import { LINES, byClient, ragOf, healthOf, RAG_LABEL } from '../data/banking';
+import { LOBS, STATUS, clientsIn, RAG_LABEL } from '../data/banking';
 
 /**
- * The client scorecard: a RAG matrix of clients against lines of business.
+ * The client book: every named file against every line of business.
  *
- * A crosstab with colour is the densest honest way to show this. Sixteen names
- * by five lines is eighty numbers, and no set of eighty bars is readable, but
- * the eye finds a row of red instantly. The number stays in the cell so the
- * colour never has to carry the value on its own.
+ * The cell is the file's STATUS on that line, not a number, because that is the
+ * question the desk actually asks. "Can I trade this client on FIC today" has a
+ * categorical answer, and forcing it into a number would invent precision the
+ * underlying fact does not have.
+ *
+ * Rows arrive worst first. This is a work queue, not a league table, so the top
+ * of the list should be what needs doing rather than what is biggest.
  */
-const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth'];
-
 export default function BankRelationships({ facts, setSlicer }) {
-  const clients = byClient(facts);   // already sorted by revenue, descending
+  const clients = clientsIn(facts);
   const [open, setOpen] = useState(null);
   const detail = clients.find((c) => c.name === open);
 
-  // Derived, not asserted. An earlier draft of the sentence below called this
-  // the fifth largest name; it is the third, and the table said so on screen.
-  const worst = clients.filter((c) => c.rag === 'crit')
-    .sort((a, b) => b.revenue - a.revenue)[0];
-  const worstRank = worst ? clients.findIndex((c) => c.name === worst.name) + 1 : 0;
-  const worstRedCells = worst
-    ? worst.cells.filter((cell) => cell && ragOf(healthOf(cell.wallet, cell.trend, 1)) === 'crit').length
-    : 0;
+  const impaired = clients.filter((c) => c.rag === 'crit');
+  const worst = impaired[0];
 
   return (
     <div className="bank-grid">
       <section className="bank-card bank-span-12">
         <header className="bank-card-head">
           <div>
-            <h2>Client scorecard</h2>
-            <p>{clients.length} named relationships by line of business, coloured by health</p>
+            <h2>Client book</h2>
+            <p>{clients.length} named files, worst first. Each cell is the file status on that line</p>
           </div>
           <span className="bank-legend-inline">
             {['ok', 'warn', 'crit'].map((r) => (
@@ -46,16 +41,19 @@ export default function BankRelationships({ facts, setSlicer }) {
             <thead>
               <tr>
                 <th className="matrix-name">Client</th>
+                <th>Risk</th>
                 <th>Region</th>
-                <th>Tier</th>
-                {LINES.map((l) => (
+                {LOBS.map((l) => (
                   <th key={l.id} className="matrix-line">
-                    <button type="button" onClick={() => setSlicer('line')(l.id)} title={l.full}>
+                    <button type="button" onClick={() => setSlicer('lob')(l.id)} title={l.full}>
+                      <span className="lob-swatch" style={{ background: l.color }} aria-hidden="true" />
                       {l.label}
                     </button>
                   </th>
                 ))}
-                <th className="is-right">Revenue</th>
+                <th className="is-right">Review due</th>
+                <th className="is-right">Alerts</th>
+                <th className="is-right">Docs</th>
                 <th className="is-right">Health</th>
               </tr>
             </thead>
@@ -67,24 +65,34 @@ export default function BankRelationships({ facts, setSlicer }) {
                   onClick={() => setOpen(open === c.name ? null : c.name)}
                 >
                   <td className="matrix-name"><strong>{c.name}</strong></td>
+                  <td><span className={`risk-tag is-${c.risk.toLowerCase()}`}>{c.risk}</span></td>
                   <td>{c.region}</td>
-                  <td>{c.tier}</td>
-                  {c.cells.map((cell, i) => {
-                    if (!cell) return <td key={i} className="matrix-cell is-empty">n/a</td>;
-                    // Per cell, breadth is 1: this is one line, on its own.
-                    const cellHealth = healthOf(cell.wallet, cell.trend, 1);
+                  {LOBS.map((l) => {
+                    const status = c.lobs[l.id];
+                    const meta = STATUS[status];
                     return (
                       <td
-                        key={i}
-                        className={`matrix-cell is-${ragOf(cellHealth)}`}
-                        title={`${c.name} · ${LINES[i].label}: ${cell.wallet}% wallet, ${cell.trend > 0 ? '+' : ''}${cell.trend}pp, $${cell.revenue}m`}
+                        key={l.id}
+                        className={meta.rag ? `matrix-cell is-${meta.rag}` : 'matrix-cell is-empty'}
+                        title={`${c.name} · ${l.full}: ${meta.label}`}
                       >
-                        <span className="matrix-num">{cell.wallet}</span>
-                        <span className="matrix-trend">{cell.trend > 0 ? '+' : ''}{cell.trend}</span>
+                        {status === 'none' ? 'n/a' : meta.label}
                       </td>
                     );
                   })}
-                  <td className="is-right mono">${c.revenue.toFixed(1)}m</td>
+                  <td className="is-right">
+                    <span className={c.overdue ? 'due is-over' : c.dueSoon ? 'due is-soon' : 'due'}>
+                      {c.overdue ? `${Math.abs(c.kycDueDays)}d over` : `${c.kycDueDays}d`}
+                    </span>
+                  </td>
+                  <td className="is-right">
+                    {c.openAlerts === 0 ? <span className="muted">0</span> : (
+                      <span className={c.highAlerts ? 'rag-badge is-crit' : 'rag-badge is-warn'}>
+                        {c.openAlerts}
+                      </span>
+                    )}
+                  </td>
+                  <td className="is-right">{c.docs === 0 ? <span className="muted">0</span> : c.docs}</td>
                   <td className="is-right">
                     <span className={`rag-badge is-${c.rag}`}>{c.health}</span>
                   </td>
@@ -95,13 +103,17 @@ export default function BankRelationships({ facts, setSlicer }) {
         </div>
 
         <p className="bank-note">
-          <strong>Read:</strong> cells are wallet share with year on year movement beneath.
-          {worst && (
-            <> <strong>{worst.name}</strong> is the {ORDINALS[worstRank - 1] ?? `number ${worstRank}`}{' '}
-              largest name in the book and {worstRedCells} of its {worst.cells.length} cells are
-              red, which a revenue ranking would never surface.</>
-          )}{' '}
-          Click any row to drill through.
+          {worst ? (
+            <>
+              <strong>Read:</strong> <strong>{worst.name}</strong> scores {worst.health}.
+              {worst.overdue ? ` Its periodic review is ${Math.abs(worst.kycDueDays)} days overdue,` : ''}
+              {worst.highAlerts > 0 ? ` it carries ${worst.highAlerts} High severity alert${worst.highAlerts > 1 ? 's' : ''},` : ''}
+              {worst.restrictedLobs.length > 0 ? ` and ${worst.restrictedLobs.length} of its lines are restricted,` : ''}
+              {' '}so the desk cannot transact it. Click any row to drill through.
+            </>
+          ) : (
+            <><strong>Read:</strong> no impaired files in this selection. Click any row to drill through.</>
+          )}
         </p>
       </section>
 
@@ -111,33 +123,104 @@ export default function BankRelationships({ facts, setSlicer }) {
             <div>
               <h2>{detail.name}</h2>
               <p>
-                {detail.region} · {detail.tier} · covered since {detail.since} ·{' '}
-                ${detail.revenue.toFixed(1)}m · {detail.breadth} of {LINES.length} lines above
-                15% wallet
+                {detail.region} · {detail.risk} risk · {detail.liveLobs.length} live,{' '}
+                {detail.pendingLobs.length} onboarding, {detail.restrictedLobs.length} restricted ·{' '}
+                {detail.outreach} outreach {detail.outreach === 1 ? 'attempt' : 'attempts'}
               </p>
             </div>
             <button type="button" className="bank-clear" onClick={() => setOpen(null)}>Close</button>
           </header>
 
-          <Lollipop
-            rows={detail.cells.map((cell, i) => ({
-              id: LINES[i].id,
-              label: LINES[i].label,
-              value: cell ? cell.wallet : 0,
-              color: LINES[i].color,
-              target: 15,
-              detail: cell ? `$${cell.revenue}m · ${cell.trend > 0 ? '+' : ''}${cell.trend}pp year on year` : 'No activity',
-            }))}
-            max={50}
-            valueFormat={(v) => `${v}%`}
-          />
+          <div className="drill-split">
+            <div>
+              <h3 className="drill-h">What is outstanding</h3>
+              <ul className="deduction-list">
+                <Deduction
+                  on={detail.overdue}
+                  label={`Periodic review ${Math.abs(detail.kycDueDays)} days overdue`}
+                  cost={Math.min(35, 10 + Math.abs(detail.kycDueDays) * 0.4)}
+                />
+                {detail.alerts.map((a) => (
+                  <Deduction
+                    key={a.type + a.ageDays}
+                    on
+                    label={`${a.type} alert, ${a.severity} severity, open ${a.ageDays} days`}
+                    cost={a.severity === 'High' ? 18 : 8}
+                  />
+                ))}
+                <Deduction
+                  on={detail.docs > 0}
+                  label={`${detail.docs} ${detail.docs === 1 ? 'document' : 'documents'} outstanding`}
+                  cost={Math.min(20, detail.docs * 2.5)}
+                />
+                <Deduction
+                  on={detail.restrictedLobs.length > 0}
+                  label={`Restricted on ${detail.restrictedLobs.map((id) => LOBS.find((l) => l.id === id).label).join(', ')}`}
+                  cost={15}
+                />
+                <Deduction
+                  on={detail.outreach > 2}
+                  label={`${detail.outreach} separate requests for the same documents`}
+                  cost={Math.min(12, Math.max(0, detail.outreach - 2) * 3)}
+                />
+                {detail.slaBreach && (
+                  <Deduction
+                    on
+                    label={`In onboarding ${detail.onboardingDays} days against a 45 day SLA`}
+                    cost={0}
+                  />
+                )}
+                {detail.health === 100 && (
+                  <li className="deduction is-clean">Nothing outstanding. This file is clean.</li>
+                )}
+              </ul>
+              <p className="drill-total">
+                <span>Health</span>
+                <strong className={`rag-badge is-${detail.rag}`}>{detail.health}</strong>
+                <em>100 less the deductions above</em>
+              </p>
+            </div>
 
-          <p className="bank-note">
-            <strong>Read:</strong> the tick at 15% is the threshold a line has to clear to
-            count as a real product relationship rather than a token trade.
-          </p>
+            <div>
+              <h3 className="drill-h">Status by line of business</h3>
+              <Lollipop
+                rows={LOBS.map((l) => {
+                  const status = detail.lobs[l.id] ?? 'none';
+                  const value = status === 'live' ? 100
+                    : status === 'pending' ? 55
+                      : status === 'review' ? 40
+                        : status === 'restricted' ? 15 : 0;
+                  return {
+                    id: l.id,
+                    label: l.label,
+                    value,
+                    color: l.color,
+                    detail: STATUS[status].label,
+                  };
+                })}
+                max={100}
+                valueFormat={() => ''}
+                labelWidth={78}
+              />
+              <p className="bank-note">
+                <strong>Read:</strong> a full stem is live and clear, a short one is restricted.
+                Each line carries its own colour because each line owns its own file.
+              </p>
+            </div>
+          </div>
         </section>
       )}
     </div>
+  );
+}
+
+/** One line of the health deduction, so the score is auditable rather than asserted. */
+function Deduction({ on, label, cost }) {
+  if (!on) return null;
+  return (
+    <li className="deduction">
+      <span>{label}</span>
+      {cost > 0 && <em>-{Math.round(cost)}</em>}
+    </li>
   );
 }

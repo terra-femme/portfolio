@@ -1724,3 +1724,212 @@
   .gantt-row { grid-template-columns: 130px 1fr 56px; }
   .gantt-axis { margin-left: 140px; margin-right: 64px; }
 }
+
+/* ============================================ report 2: light Tableau skin === */
+/* Report 1 is a dark Power BI style canvas. Report 2 is deliberately the
+   opposite: a white Tableau style worksheet. Tableau's default canvas is white,
+   so this is not just contrast for its own sake, it is each tool looking like
+   itself. Both are still scoped, so neither can repaint the portfolio page they
+   sit in. */
+.bank {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f2f4f3;
+  --surface-3: #e4e8e6;
+  --line: rgba(17, 19, 17, 0.10);
+  --line-strong: rgba(17, 19, 17, 0.20);
+  --ink: #1b1f1d;
+  --ink-dim: #5f6b65;
+  --ink-faint: #8b968f;
+
+  /* Tableau 10. Chosen because it is the palette this audience already reads,
+     and because the ten hues are spaced for maximum separation on white. One
+     per line of business, fixed in the data so a line is the same colour in
+     every visual on every page. */
+  --t-1: #4e79a7;   /* FIC       blue   */
+  --t-2: #f28e2b;   /* Markets   orange */
+  --t-3: #e15759;   /* spare     red    */
+  --t-4: #17a2a2;   /* GTB       teal   */
+  --t-5: #59a14f;   /* Lending   green  */
+  --t-6: #b07aa1;   /* Advisory  purple */
+
+  --c-ok: #3f8f4a;
+  --c-warn: #d98b1f;
+  --c-crit: #d23f4b;
+  --c-1: #4e79a7;
+
+  color-scheme: light;
+}
+
+/* The frame around report 2 is white, not the dark ground used for report 1. */
+.piece-frame.is-light { background: #ffffff; }
+.piece-frame.is-light .piece-chrome {
+  background: #f2f4f3;
+  border-bottom-color: rgba(17, 19, 17, 0.10);
+}
+.piece-frame.is-light .piece-url { color: rgba(27, 31, 29, 0.45); }
+.piece-frame.is-light .piece-open { color: rgba(27, 31, 29, 0.6); border-color: rgba(17,19,17,0.16); }
+.piece-frame.is-light .piece-open:hover { color: #4e79a7; border-color: rgba(78,121,167,0.5); }
+.piece-frame.is-light .piece-dots span { background: rgba(17,19,17,0.12); }
+.piece-frame.is-light .piece-dots span:first-child { background: rgba(210,63,75,0.5); }
+.piece-frame.is-light .piece-dots span:nth-child(2) { background: rgba(217,139,31,0.5); }
+.piece-frame.is-light .piece-dots span:nth-child(3) { background: rgba(63,143,74,0.5); }
+
+/* On white the top bar needs a visible edge rather than a darker fill. */
+.bank-top { background: #fbfcfb; }
+.bank-tabs { background: var(--surface-2); }
+.bank-tab.is-on { background: #1b1f1d; color: #ffffff; }
+.bank-card, .bank-tile { box-shadow: 0 1px 2px rgba(17,19,17,0.04); }
+
+/* Colour swatch inside a slicer pill, so the Line slicer states its own key. */
+.slicer-swatch { width: 8px; height: 8px; border-radius: 2px; flex: 0 0 auto; margin-right: 2px; }
+.slicer-pill { display: inline-flex; align-items: center; gap: 6px; }
+.slicer-pill.is-on { background: color-mix(in oklab, var(--c-1) 16%, transparent); color: #2f5a80; }
+
+.lob-swatch { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; }
+
+/* Risk rating tag. */
+.risk-tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.risk-tag.is-high { background: color-mix(in oklab, var(--c-crit) 15%, transparent); color: #a8323c; }
+.risk-tag.is-medium { background: color-mix(in oklab, var(--c-warn) 18%, transparent); color: #9a6310; }
+.risk-tag.is-low { background: var(--surface-2); color: var(--ink-dim); }
+
+/* Review-due cell. */
+.due { font-variant-numeric: tabular-nums; color: var(--ink-dim); }
+.due.is-soon { color: #9a6310; font-weight: 600; }
+.due.is-over { color: #a8323c; font-weight: 600; }
+.muted { color: var(--ink-faint); }
+
+/* Matrix cells now carry words, not numbers, so they need room and a lighter
+   wash than the dark report used. */
+.matrix-cell { text-align: center; font-size: 11.5px; font-weight: 600; }
+.matrix-cell.is-ok { background: color-mix(in oklab, var(--c-ok) 14%, transparent); color: #2f6b38; }
+.matrix-cell.is-warn { background: color-mix(in oklab, var(--c-warn) 18%, transparent); color: #8a5810; }
+.matrix-cell.is-crit { background: color-mix(in oklab, var(--c-crit) 16%, transparent); color: #a8323c; }
+.matrix-cell.is-empty { color: var(--ink-faint); font-weight: 400; }
+.matrix tbody tr { background: var(--surface-2); }
+.matrix tbody tr:hover { background: var(--surface-3); }
+.rag-badge.is-ok { background: color-mix(in oklab, var(--c-ok) 16%, transparent); color: #2f6b38; }
+.rag-badge.is-warn { background: color-mix(in oklab, var(--c-warn) 20%, transparent); color: #8a5810; }
+.rag-badge.is-crit { background: color-mix(in oklab, var(--c-crit) 18%, transparent); color: #a8323c; }
+
+/* Drill-through: the health score, itemised. */
+.drill-split { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+.drill-h {
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+.deduction-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.deduction {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: var(--surface-2);
+  font-size: 12.5px;
+  color: var(--ink-dim);
+}
+.deduction em {
+  margin-left: auto;
+  font-style: normal;
+  font-weight: 700;
+  color: #a8323c;
+  font-variant-numeric: tabular-nums;
+}
+.deduction.is-clean { color: #2f6b38; background: color-mix(in oklab, var(--c-ok) 10%, transparent); }
+.drill-total {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--ink-dim);
+}
+.drill-total em { font-style: normal; color: var(--ink-faint); font-size: 11.5px; }
+
+/* Queue cards. */
+.queue-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+.queue-card { padding: 14px 15px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-2); }
+.queue-card header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 9px; }
+.queue-name { font-size: 12px; font-weight: 600; color: var(--ink); }
+.queue-open {
+  font-family: var(--display);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.queue-open em { font-style: normal; font-size: 0.44em; color: var(--ink-faint); margin-left: 6px; }
+.queue-bar { height: 6px; margin: 10px 0 11px; border-radius: 4px; background: var(--surface-3); overflow: hidden; }
+.queue-fill { display: block; height: 100%; border-radius: 4px; transform-origin: left center; animation: grow-right 0.6s cubic-bezier(0.22,1,0.36,1) both; }
+.queue-fill.is-ok { background: var(--c-ok); }
+.queue-fill.is-warn { background: var(--c-warn); }
+.queue-fill.is-crit { background: var(--c-crit); }
+.queue-facts { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.queue-facts li { display: flex; justify-content: space-between; gap: 10px; font-size: 11.5px; color: var(--ink-faint); }
+.queue-facts strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.queue-facts strong.is-warn { color: #8a5810; }
+.queue-facts strong.is-crit, .queue-facts strong.is-bad { color: #a8323c; }
+.queue-facts strong.is-ok { color: #2f6b38; }
+
+/* Ageing rows, with the SLA drawn as a rule behind the bar. */
+.age-rows { list-style: none; display: flex; flex-direction: column; gap: 9px; flex: 1 1 auto; }
+.age-row { display: grid; grid-template-columns: 190px 1fr 96px; gap: 12px; align-items: center; }
+.age-label { min-width: 0; }
+.age-label strong { display: block; font-size: 12.5px; color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.age-label span { display: block; font-size: 11px; color: var(--ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.age-track { position: relative; height: 24px; background: var(--surface-2); border-radius: 7px; overflow: hidden; }
+.age-sla { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink-faint); opacity: 0.55; z-index: 2; }
+.age-bar {
+  position: absolute; top: 4px; bottom: 4px; left: 0;
+  border-radius: 999px;
+  background: var(--t-1);
+  transform-origin: left center;
+  animation: grow-right 0.6s cubic-bezier(0.22,1,0.36,1) both;
+}
+.age-bar.is-over { background: var(--c-crit); }
+.age-value { text-align: right; }
+.age-value strong { display: block; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--ink); }
+.age-value strong.is-bad { color: #a8323c; }
+.age-value span { display: block; font-size: 10.5px; color: var(--ink-faint); }
+
+.bank-span-3 { grid-column: span 3; }
+.bank-span-5 { grid-column: span 5; }
+.bank-span-7 { grid-column: span 7; }
+
+/* Charts inside the light report need light gridlines and dark axis text. */
+.bank .grid-line { stroke: rgba(17,19,17,0.08); }
+.bank .axis-label { fill: var(--ink-faint); }
+.bank .lolli-track { stroke: var(--surface-3); }
+.bank .lolli-label, .bank .lolli-value { fill: var(--ink); }
+.bank .lolli-target { stroke: var(--ink-faint); }
+.bank .petal { fill: var(--surface-3); }
+.bank .chart-tooltip, .bank .lolli-tip {
+  background: #ffffff;
+  border-color: var(--line-strong);
+  color: var(--ink-dim);
+  box-shadow: 0 10px 26px rgba(17,19,17,0.14);
+}
+.bank .tt-title, .bank .tt-val { color: var(--ink); }
+.bank .crosshair { stroke: var(--line-strong); }
+.bank .hbar-track { background: var(--surface-2); }
+.bank .stat-list li { border-bottom-color: var(--line); }
+.bank .live-dot { background: var(--c-ok); }
+
+@media (max-width: 1100px) {
+  .queue-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .drill-split { grid-template-columns: 1fr; }
+  .bank-span-3, .bank-span-5, .bank-span-7 { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .queue-grid { grid-template-columns: 1fr; }
+  .age-row { grid-template-columns: 120px 1fr 80px; }
+}

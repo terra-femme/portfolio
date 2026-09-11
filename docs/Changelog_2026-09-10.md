@@ -737,3 +737,89 @@ into bar width too would have made a bar that means two things at once.
 **Colour is never the only channel.** The RAG matrix prints wallet share and its
 movement inside every coloured cell, so the grid still works for a reader with a
 colour vision deficiency, and in print.
+
+---
+
+# Session 7: Report 2 rebuilt as client lifecycle, on a white Tableau canvas
+
+## Title
+
+**Replaced the revenue model in report 2 with client lifecycle operations, and
+inverted its theme to a white Tableau style worksheet with one colour per line
+of business.**
+
+## Error / Issue
+
+Report 2 measured revenue and wallet share. That is a coverage and sales view,
+and it was the wrong model. The user's correction:
+
+> "i didnt want revenues i wanted client relationship health, those LOBs onboard
+> clients all day every day and they come through onboarding, PR, emergency
+> review, new screening alerts, etc and the health of those relationships matter"
+
+## Root Cause
+
+I heard "client relationship health in an investment bank" and reached for the
+most common banking dashboard, which is revenue by product. The actual subject
+was client lifecycle management: onboarding, periodic review, event driven
+review, and screening alerts. Those are different questions with different
+owners, and the user has worked that queue, so the model had to come from how
+the work is really measured rather than from what a banking dashboard usually
+shows.
+
+## Fix
+
+Relationship health is now the standing of the client file, not its revenue:
+
+| Deduction from a clean file | Weight |
+|---|---|
+| Periodic review overdue | up to 35 |
+| Open High severity alert, sanctions or ownership change | 18 each |
+| Open Medium alert, PEP or adverse media | 8 each |
+| Documents outstanding | up to 20 |
+| Any line restricted | 15 |
+| Repeat outreach beyond the second ask | up to 12 |
+
+The score starts at 100 and deducts, because that is how the work is reasoned
+about: nobody scores a file up, they list what is outstanding. Overdue review is
+weighted hardest because it is the only item that is entirely the bank's own
+failure and the only one that can halt business on its own.
+
+The drill-through itemises every deduction, so the number is auditable rather
+than asserted.
+
+The three pages are now Lifecycle, Client book and Queues. Matrix cells carry a
+STATUS, Live, In onboarding, Under review or Restricted, rather than a number,
+because "can I trade this client on FIC today" has a categorical answer and a
+number would invent precision the fact does not have. Rows arrive worst first,
+because this is a work queue rather than a league table.
+
+## Theme
+
+Report 1 stays a dark Power BI style canvas. Report 2 is now a white Tableau
+style worksheet, which is not contrast for its own sake: Tableau's default
+canvas is white, so each report looks like the tool it represents. One Tableau
+10 hue per line of business, fixed in the data so a line is the same colour in
+every visual on every page, with the swatch repeated in the slicer pill and the
+matrix header.
+
+## Education
+
+**A domain model has to come from the domain, not from the chart library.** The
+first version was internally consistent and well drawn and still wrong, because
+it answered a question nobody in that seat asks. When the user has done the job,
+the model should be recognisable to them before it is pretty.
+
+**Score down, not up.** Deducting from a clean file mirrors how a reviewer
+works and makes every point of the score traceable to a named cause. A score
+built up from weighted positives cannot be explained to the person whose file it
+is.
+
+**Categorical facts deserve categorical marks.** Cell status stayed words.
+Encoding Live, Restricted and In onboarding as 100, 15 and 55 in a table would
+have implied an interval scale that does not exist.
+
+**Sequential stages must not use a categorical palette.** The onboarding funnel
+first used the line of business colours for its six stages, which implied the
+stages were unrelated categories. It now uses one hue with lightness carrying
+the order.

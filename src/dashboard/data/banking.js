@@ -1,232 +1,281 @@
 /**
- * Mock institutional coverage data: client relationship health across lines of
- * business, of the kind a coverage banker reads inside a bank's own system.
+ * Mock client lifecycle data: the health of client relationships as an
+ * onboarding and client-management function actually measures it.
  *
- * Same discipline as azure.js. Nothing here is a typed-in total. There is one
- * fact table (CLIENT_ROWS, 16 clients x 5 lines = 80 rows) and every headline,
- * every lollipop, every RAG cell and every slicer aggregate is computed from
- * it. That is also what makes cross-filtering honest: when a slicer narrows the
- * rows, the numbers move because they were always a function of the rows.
+ * Relationship health here is NOT revenue. It is whether the client's file is
+ * in good standing: periodic review in date, no open screening hits, documents
+ * complete, no trading restriction, and not being asked for the same paperwork
+ * for the fifth time. Lines of business onboard clients continuously, and a
+ * relationship can be highly profitable and still be a problem if it cannot be
+ * traded because its KYC lapsed.
  *
- * All client names are invented. No real institution, mandate or revenue figure
+ * Same discipline as azure.js. One fact table, and every headline, lollipop,
+ * matrix cell and queue count is computed from it, so a slicer moves every
+ * number together and nothing can disagree with anything else.
+ *
+ * All client names are invented. No real institution, case, alert or person
  * appears anywhere in this file.
  */
 
-export const LAST_REFRESH = '2026-09-10T05:58:00Z';
+export const LAST_REFRESH = '2026-09-11T06:10:00Z';
 
-/** The five lines the franchise books revenue against. */
-export const LINES = [
-  { id: 'fic', label: 'FIC', full: 'Fixed income, currencies & commodities', color: 'var(--t-1)' },
-  { id: 'eq', label: 'Equities', full: 'Cash equities & derivatives', color: 'var(--t-2)' },
+/** The lines that onboard and maintain clients. */
+export const LOBS = [
+  { id: 'fic', label: 'FIC', full: 'Fixed income, currencies and commodities', color: 'var(--t-1)' },
+  { id: 'mkt', label: 'Markets', full: 'Equities and markets', color: 'var(--t-2)' },
   { id: 'gtb', label: 'GTB', full: 'Global transaction banking', color: 'var(--t-4)' },
   { id: 'adv', label: 'Advisory', full: 'M&A, ECM and DCM', color: 'var(--t-6)' },
-  { id: 'lend', label: 'Lending', full: 'Corporate lending & structured credit', color: 'var(--t-5)' },
+  { id: 'lend', label: 'Lending', full: 'Corporate lending', color: 'var(--t-5)' },
 ];
 
 export const REGIONS = ['AMER', 'EMEA', 'APAC'];
-export const TIERS = ['Tier 1', 'Tier 2', 'Tier 3'];
+export const RISK_RATINGS = ['High', 'Medium', 'Low'];
 
-/**
- * Top 16 clients by revenue. `rev` is YTD revenue in $m per line, `wallet` is
- * estimated share of that client's spend per line, in the LINES order above.
- *
- * The story in here: GTB is the healthy franchise, Advisory is thin almost
- * everywhere, and three names (Blackwater, Cordillera, Silverbirch) are large
- * revenue with weak wallet, which is exactly the profile that looks fine on a
- * revenue report and is actually a relationship at risk.
- */
-const CLIENT_ROWS = [
-  { name: 'Meridian Capital Partners', region: 'AMER', tier: 'Tier 1', since: 2011, rev: [24.8, 18.2, 11.4, 7.6, 9.1], wallet: [34, 29, 41, 18, 26] },
-  { name: 'Kestrel Asset Management', region: 'EMEA', tier: 'Tier 1', since: 2009, rev: [21.3, 22.7, 8.9, 5.2, 6.4], wallet: [31, 36, 33, 14, 21] },
-  { name: 'Orion Sovereign Fund', region: 'APAC', tier: 'Tier 1', since: 2014, rev: [19.6, 12.4, 14.8, 3.1, 11.2], wallet: [28, 22, 44, 9, 30] },
-  { name: 'Northgate Pension Trust', region: 'EMEA', tier: 'Tier 1', since: 2008, rev: [16.2, 15.9, 6.7, 2.4, 5.8], wallet: [26, 31, 27, 8, 19] },
-  { name: 'Blackwater Industrials', region: 'AMER', tier: 'Tier 1', since: 2016, rev: [18.9, 6.2, 12.1, 9.8, 14.6], wallet: [12, 7, 16, 11, 14] },
-  { name: 'Helvetia Reinsurance', region: 'EMEA', tier: 'Tier 2', since: 2012, rev: [12.4, 9.8, 7.2, 2.9, 4.1], wallet: [24, 27, 35, 12, 18] },
-  { name: 'Pacific Rim Logistics', region: 'APAC', tier: 'Tier 2', since: 2018, rev: [8.7, 4.2, 13.6, 3.8, 6.9], wallet: [19, 14, 42, 13, 22] },
-  { name: 'Cordillera Mining', region: 'AMER', tier: 'Tier 2', since: 2015, rev: [14.1, 3.8, 5.4, 6.2, 10.8], wallet: [11, 6, 13, 9, 12] },
-  { name: 'Tiber Insurance Group', region: 'EMEA', tier: 'Tier 2', since: 2013, rev: [9.6, 11.2, 6.8, 1.9, 3.7], wallet: [22, 29, 31, 7, 16] },
-  { name: 'Solent Energy Group', region: 'EMEA', tier: 'Tier 2', since: 2017, rev: [11.8, 5.1, 8.4, 5.6, 8.2], wallet: [18, 12, 26, 16, 21] },
-  { name: 'Hanseatic Shipping', region: 'EMEA', tier: 'Tier 3', since: 2019, rev: [6.2, 2.1, 9.8, 1.4, 4.6], wallet: [16, 9, 38, 6, 19] },
-  { name: 'Cobalt Pharma Group', region: 'AMER', tier: 'Tier 2', since: 2020, rev: [5.8, 7.9, 4.2, 8.1, 3.4], wallet: [14, 21, 19, 24, 11] },
-  { name: 'Vantage Point Holdings', region: 'AMER', tier: 'Tier 3', since: 2021, rev: [4.9, 6.4, 3.1, 2.2, 2.8], wallet: [17, 23, 17, 10, 13] },
-  { name: 'Ardent Infrastructure', region: 'APAC', tier: 'Tier 3', since: 2019, rev: [7.1, 2.8, 6.2, 4.4, 7.8], wallet: [15, 8, 24, 14, 23] },
-  { name: 'Silverbirch Retail', region: 'AMER', tier: 'Tier 3', since: 2022, rev: [5.4, 3.2, 4.8, 1.6, 6.1], wallet: [9, 7, 12, 5, 10] },
-  { name: 'Aurelian Global Advisors', region: 'APAC', tier: 'Tier 3', since: 2020, rev: [3.8, 5.6, 2.9, 3.2, 2.1], wallet: [13, 19, 15, 18, 9] },
+/** The queues a client file moves through. */
+export const WORKSTREAMS = [
+  { id: 'onboarding', label: 'Onboarding', sla: 45, unit: 'days' },
+  { id: 'pr', label: 'Periodic review', sla: 30, unit: 'days' },
+  { id: 'edd', label: 'Emergency review', sla: 10, unit: 'days' },
+  { id: 'screening', label: 'Screening alerts', sla: 5, unit: 'days' },
 ];
 
-/** Year-on-year wallet-share movement in percentage points, per line. */
-const TREND = {
-  'Meridian Capital Partners': [2, 1, 3, -1, 1],
-  'Kestrel Asset Management': [1, 3, 2, 0, 1],
-  'Orion Sovereign Fund': [-1, 2, 4, -2, 2],
-  'Northgate Pension Trust': [1, 2, 1, -1, 0],
-  'Blackwater Industrials': [-4, -3, -2, -5, -3],
-  'Helvetia Reinsurance': [2, 1, 3, 0, 1],
-  'Pacific Rim Logistics': [1, 0, 5, 1, 2],
-  'Cordillera Mining': [-3, -2, -4, -3, -2],
-  'Tiber Insurance Group': [0, 2, 2, -1, 1],
-  'Solent Energy Group': [1, -1, 2, 2, 1],
-  'Hanseatic Shipping': [0, -1, 4, -1, 1],
-  'Cobalt Pharma Group': [2, 3, 1, 4, 0],
-  'Vantage Point Holdings': [1, 2, 0, 1, 1],
-  'Ardent Infrastructure': [-1, -2, 2, 1, 3],
-  'Silverbirch Retail': [-2, -3, -3, -2, -4],
-  'Aurelian Global Advisors': [1, 2, 1, 2, 0],
+/** Per-LOB status for a client file. */
+export const STATUS = {
+  live: { label: 'Live', rag: 'ok' },
+  pending: { label: 'In onboarding', rag: 'warn' },
+  review: { label: 'Under review', rag: 'warn' },
+  restricted: { label: 'Restricted', rag: 'crit' },
+  none: { label: 'Not onboarded', rag: null },
 };
 
 /**
- * The flat fact table. One row per client per line, which is the shape a BI
- * tool would actually pull, and the shape that makes every aggregate below a
- * one-line reduce rather than another hand-typed number.
+ * The client book.
+ *
+ * `kycDueDays` is days until the periodic review falls due; negative is overdue.
+ * `outreach` is how many separate times the client has been asked for
+ * outstanding documents on the current case, which is the number that measures
+ * friction the client actually feels.
+ *
+ * The story: Cordillera Mining is a High risk name 46 days past its periodic
+ * review with an open sanctions hit, so three lines are restricted and it cannot
+ * be traded. Blackwater Industrials has been in onboarding 118 days against a
+ * 45 day SLA and has been asked for documents seven times, which is how a
+ * relationship is lost before it ever opens.
  */
-export const FACTS = CLIENT_ROWS.flatMap((c) =>
-  LINES.map((line, i) => ({
-    client: c.name,
-    region: c.region,
-    tier: c.tier,
-    since: c.since,
-    line: line.id,
-    lineLabel: line.label,
-    revenue: c.rev[i],
-    wallet: c.wallet[i],
-    trend: TREND[c.name][i],
-  }))
-);
+const CLIENTS = [
+  { name: 'Meridian Capital Partners', region: 'AMER', risk: 'Low', kycDueDays: 212, docs: 0, outreach: 0, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'live', gtb: 'live', adv: 'live', lend: 'live' } },
+  { name: 'Kestrel Asset Management', region: 'EMEA', risk: 'Low', kycDueDays: 168, docs: 0, outreach: 1, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'live', gtb: 'live', adv: 'none', lend: 'live' } },
+  { name: 'Orion Sovereign Fund', region: 'APAC', risk: 'High', kycDueDays: 34, docs: 1, outreach: 2, onboardingDays: null, alerts: [{ type: 'PEP', severity: 'Medium', ageDays: 4 }], lobs: { fic: 'live', mkt: 'live', gtb: 'live', adv: 'pending', lend: 'live' } },
+  { name: 'Northgate Pension Trust', region: 'EMEA', risk: 'Low', kycDueDays: 96, docs: 0, outreach: 0, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'live', gtb: 'live', adv: 'none', lend: 'live' } },
+  { name: 'Blackwater Industrials', region: 'AMER', risk: 'High', kycDueDays: 58, docs: 9, outreach: 7, onboardingDays: 118, alerts: [{ type: 'Adverse media', severity: 'Medium', ageDays: 22 }], lobs: { fic: 'pending', mkt: 'pending', gtb: 'pending', adv: 'none', lend: 'pending' } },
+  { name: 'Helvetia Reinsurance', region: 'EMEA', risk: 'Medium', kycDueDays: 121, docs: 0, outreach: 1, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'live', gtb: 'live', adv: 'none', lend: 'live' } },
+  { name: 'Pacific Rim Logistics', region: 'APAC', risk: 'Medium', kycDueDays: 27, docs: 2, outreach: 2, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'none', gtb: 'live', adv: 'pending', lend: 'live' } },
+  { name: 'Cordillera Mining', region: 'AMER', risk: 'High', kycDueDays: -46, docs: 6, outreach: 5, onboardingDays: null, alerts: [{ type: 'Sanctions', severity: 'High', ageDays: 17 }, { type: 'Adverse media', severity: 'Medium', ageDays: 31 }], lobs: { fic: 'restricted', mkt: 'restricted', gtb: 'review', adv: 'none', lend: 'restricted' } },
+  { name: 'Tiber Insurance Group', region: 'EMEA', risk: 'Low', kycDueDays: 143, docs: 0, outreach: 0, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'live', gtb: 'live', adv: 'none', lend: 'none' } },
+  { name: 'Solent Energy Group', region: 'EMEA', risk: 'Medium', kycDueDays: -12, docs: 3, outreach: 3, onboardingDays: null, alerts: [{ type: 'Adverse media', severity: 'Medium', ageDays: 9 }], lobs: { fic: 'live', mkt: 'live', gtb: 'review', adv: 'pending', lend: 'live' } },
+  { name: 'Hanseatic Shipping', region: 'EMEA', risk: 'High', kycDueDays: 19, docs: 4, outreach: 4, onboardingDays: null, alerts: [{ type: 'Sanctions', severity: 'Medium', ageDays: 6 }], lobs: { fic: 'live', mkt: 'none', gtb: 'review', adv: 'none', lend: 'live' } },
+  { name: 'Cobalt Pharma Group', region: 'AMER', risk: 'Medium', kycDueDays: 88, docs: 1, outreach: 1, onboardingDays: 31, alerts: [], lobs: { fic: 'pending', mkt: 'live', gtb: 'live', adv: 'live', lend: 'none' } },
+  { name: 'Vantage Point Holdings', region: 'AMER', risk: 'Low', kycDueDays: 64, docs: 0, outreach: 0, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'live', gtb: 'none', adv: 'none', lend: 'live' } },
+  { name: 'Ardent Infrastructure', region: 'APAC', risk: 'Medium', kycDueDays: 8, docs: 3, outreach: 3, onboardingDays: null, alerts: [{ type: 'PEP', severity: 'Medium', ageDays: 12 }], lobs: { fic: 'live', mkt: 'none', gtb: 'live', adv: 'pending', lend: 'review' } },
+  { name: 'Silverbirch Retail', region: 'AMER', risk: 'High', kycDueDays: -73, docs: 8, outreach: 6, onboardingDays: null, alerts: [{ type: 'Ownership change', severity: 'High', ageDays: 28 }], lobs: { fic: 'restricted', mkt: 'restricted', gtb: 'restricted', adv: 'none', lend: 'review' } },
+  { name: 'Aurelian Global Advisors', region: 'APAC', risk: 'Low', kycDueDays: 174, docs: 0, outreach: 1, onboardingDays: 22, alerts: [], lobs: { fic: 'pending', mkt: 'live', gtb: 'pending', adv: 'live', lend: 'none' } },
+];
 
 /**
- * Relationship health, 0 to 100, from three things a coverage team actually
- * argues about: how much of the client's wallet we hold, which way it moved,
- * and whether the relationship spans lines or sits in one product.
+ * Relationship health, 0 to 100. Starts at a clean file and deducts for each
+ * thing wrong with it, because that is how the work is actually reasoned about:
+ * nobody scores a file up, they list what is outstanding.
  *
- * Weighted 55/25/20. Wallet share dominates because it is the only one of the
- * three that is a level rather than a delta, but trend carries real weight so a
- * large, shrinking relationship cannot hide behind its size. That is the whole
- * point: revenue alone would rank Blackwater fifth-best, and it is the single
- * worst relationship in the book.
+ *   overdue periodic review   up to -35   the one that stops trading
+ *   open High alert              -18 each sanctions, ownership change
+ *   open Medium alert             -8 each PEP, adverse media
+ *   documents outstanding     up to -20   2.5 per item
+ *   any restricted line          -15      the relationship is already impaired
+ *   repeat outreach           up to -12   3 per ask beyond the second
+ *
+ * Overdue review is weighted hardest because it is the only item on the list
+ * that is entirely the bank's own failure and the only one that can halt
+ * business on its own.
  */
-export function healthOf(wallet, trend, breadth) {
-  const walletScore = Math.min(100, (wallet / 40) * 100);
-  const trendScore = Math.max(0, Math.min(100, 50 + trend * 12));
-  const breadthScore = Math.min(100, (breadth / LINES.length) * 100);
-  return Math.round(walletScore * 0.55 + trendScore * 0.25 + breadthScore * 0.2);
+export function healthOf(c) {
+  let score = 100;
+
+  if (c.kycDueDays < 0) score -= Math.min(35, 10 + Math.abs(c.kycDueDays) * 0.4);
+  else if (c.kycDueDays < 30) score -= 6;
+
+  score -= c.alerts.filter((a) => a.severity === 'High').length * 18;
+  score -= c.alerts.filter((a) => a.severity === 'Medium').length * 8;
+  score -= Math.min(20, c.docs * 2.5);
+  if (Object.values(c.lobs).includes('restricted')) score -= 15;
+  score -= Math.min(12, Math.max(0, c.outreach - 2) * 3);
+
+  return Math.max(0, Math.round(score));
 }
 
 export function ragOf(health) {
-  if (health >= 62) return 'ok';
-  if (health >= 42) return 'warn';
+  if (health >= 75) return 'ok';
+  if (health >= 50) return 'warn';
   return 'crit';
 }
 
-export const RAG_LABEL = { ok: 'Healthy', warn: 'Watch', crit: 'At risk' };
+export const RAG_LABEL = { ok: 'Good standing', warn: 'Needs attention', crit: 'Impaired' };
 
-/** Rows left after the slicers. Everything on the report reads from this. */
-export function applySlicers(facts, { region, line, tier }) {
+/** Every client enriched with its derived health and flags. */
+export const BOOK = CLIENTS.map((c) => {
+  const health = healthOf(c);
+  const liveLobs = Object.entries(c.lobs).filter(([, s]) => s === 'live').map(([id]) => id);
+  const restrictedLobs = Object.entries(c.lobs).filter(([, s]) => s === 'restricted').map(([id]) => id);
+  const pendingLobs = Object.entries(c.lobs).filter(([, s]) => s === 'pending').map(([id]) => id);
+  return {
+    ...c,
+    health,
+    rag: ragOf(health),
+    overdue: c.kycDueDays < 0,
+    dueSoon: c.kycDueDays >= 0 && c.kycDueDays < 30,
+    highAlerts: c.alerts.filter((a) => a.severity === 'High').length,
+    openAlerts: c.alerts.length,
+    liveLobs,
+    restrictedLobs,
+    pendingLobs,
+    clearToTrade: restrictedLobs.length === 0 && c.kycDueDays >= 0,
+    slaBreach: c.onboardingDays != null && c.onboardingDays > 45,
+  };
+}).sort((a, b) => a.health - b.health);   // worst first: this is a work queue
+
+/** The flat fact table: one row per client per line of business. */
+export const FACTS = BOOK.flatMap((c) =>
+  LOBS.filter((l) => c.lobs[l.id] !== 'none').map((l) => ({
+    client: c.name,
+    region: c.region,
+    risk: c.risk,
+    lob: l.id,
+    lobLabel: l.label,
+    status: c.lobs[l.id],
+    health: c.health,
+    rag: c.rag,
+    overdue: c.overdue,
+    openAlerts: c.openAlerts,
+    highAlerts: c.highAlerts,
+    docs: c.docs,
+    outreach: c.outreach,
+    onboardingDays: c.onboardingDays,
+    kycDueDays: c.kycDueDays,
+  }))
+);
+
+export function applySlicers(facts, { region, lob, risk }) {
   return facts.filter((f) =>
     (region === 'All' || f.region === region)
-    && (line === 'All' || f.line === line)
-    && (tier === 'All' || f.tier === tier));
+    && (lob === 'All' || f.lob === lob)
+    && (risk === 'All' || f.risk === risk));
 }
 
-/** Per line of business: revenue, weighted wallet share, trend and health. */
-export function byLine(facts) {
-  return LINES.map((line) => {
-    const rows = facts.filter((f) => f.line === line.id);
-    const revenue = rows.reduce((s, r) => s + r.revenue, 0);
-    if (!rows.length) return { ...line, revenue: 0, wallet: 0, trend: 0, health: 0, rag: 'crit', clients: 0 };
-    // Revenue-weighted, not a plain mean: a 40% wallet share on a $200k client
-    // should not offset a 9% share on a $19m one.
-    const wallet = rows.reduce((s, r) => s + r.wallet * r.revenue, 0) / revenue;
-    const trend = rows.reduce((s, r) => s + r.trend * r.revenue, 0) / revenue;
-    const breadth = new Set(rows.map((r) => r.client)).size / CLIENT_ROWS.length * LINES.length;
-    const health = healthOf(wallet, trend, breadth);
+/** Clients surviving the slicers, deduplicated back to one row each. */
+export function clientsIn(facts) {
+  const names = new Set(facts.map((f) => f.client));
+  return BOOK.filter((c) => names.has(c.name));
+}
+
+/**
+ * Relationship health per line of business.
+ *
+ * A line's health is the mean health of the client files it carries, which is
+ * the honest aggregate: a line is exactly as healthy as the relationships it
+ * has to maintain. `blocked` counts files that cannot transact on that line.
+ */
+export function byLob(facts) {
+  return LOBS.map((lob) => {
+    const rows = facts.filter((f) => f.lob === lob.id);
+    if (!rows.length) {
+      return { ...lob, health: 0, rag: 'crit', clients: 0, live: 0, pending: 0, blocked: 0, overdue: 0, alerts: 0 };
+    }
+    const health = Math.round(rows.reduce((s, r) => s + r.health, 0) / rows.length);
     return {
-      ...line,
-      revenue,
-      wallet: Number(wallet.toFixed(1)),
-      trend: Number(trend.toFixed(1)),
+      ...lob,
       health,
       rag: ragOf(health),
-      clients: new Set(rows.map((r) => r.client)).size,
+      clients: rows.length,
+      live: rows.filter((r) => r.status === 'live').length,
+      pending: rows.filter((r) => r.status === 'pending').length,
+      blocked: rows.filter((r) => r.status === 'restricted' || r.status === 'review').length,
+      overdue: rows.filter((r) => r.overdue).length,
+      alerts: rows.reduce((s, r) => s + r.openAlerts, 0),
     };
   });
 }
 
-/** Per client: total revenue, weighted wallet, breadth of lines, health. */
-export function byClient(facts) {
-  const names = [...new Set(facts.map((f) => f.client))];
-  return names.map((name) => {
-    const rows = facts.filter((f) => f.client === name);
-    const revenue = rows.reduce((s, r) => s + r.revenue, 0);
-    const wallet = rows.reduce((s, r) => s + r.wallet * r.revenue, 0) / (revenue || 1);
-    const trend = rows.reduce((s, r) => s + r.trend * r.revenue, 0) / (revenue || 1);
-    // A line counts toward breadth only above 15% wallet. Booking a token trade
-    // in five products is not a five-product relationship.
-    const breadth = rows.filter((r) => r.wallet >= 15).length;
-    const health = healthOf(wallet, trend, breadth);
-    const meta = CLIENT_ROWS.find((c) => c.name === name);
-    return {
-      name,
-      region: meta.region,
-      tier: meta.tier,
-      since: meta.since,
-      revenue: Number(revenue.toFixed(1)),
-      wallet: Number(wallet.toFixed(1)),
-      trend: Number(trend.toFixed(1)),
-      breadth,
-      health,
-      rag: ragOf(health),
-      cells: LINES.map((l) => rows.find((r) => r.line === l.id) || null),
-    };
-  }).sort((a, b) => b.revenue - a.revenue);
-}
-
-/** Headline tiles, all derived from whatever the slicers left behind. */
+/** Headline tiles, all derived from the filtered rows. */
 export function headline(facts) {
-  const revenue = facts.reduce((s, r) => s + r.revenue, 0);
-  const clients = byClient(facts);
-  const wallet = facts.reduce((s, r) => s + r.wallet * r.revenue, 0) / (revenue || 1);
-  const atRisk = clients.filter((c) => c.rag === 'crit');
-  const atRiskRevenue = atRisk.reduce((s, c) => s + c.revenue, 0);
-  const avgBreadth = clients.reduce((s, c) => s + c.breadth, 0) / (clients.length || 1);
+  const clients = clientsIn(facts);
+  const inOnboarding = clients.filter((c) => c.onboardingDays != null);
+  const cycle = inOnboarding.length
+    ? Math.round(inOnboarding.reduce((s, c) => s + c.onboardingDays, 0) / inOnboarding.length)
+    : 0;
   return {
-    revenue,
     clients: clients.length,
-    wallet: Number(wallet.toFixed(1)),
-    atRisk: atRisk.length,
-    atRiskRevenue: Number(atRiskRevenue.toFixed(1)),
-    avgBreadth: Number(avgBreadth.toFixed(2)),
+    inOnboarding: inOnboarding.length,
+    cycleDays: cycle,
+    slaBreaches: clients.filter((c) => c.slaBreach).length,
+    overdue: clients.filter((c) => c.overdue).length,
+    dueSoon: clients.filter((c) => c.dueSoon).length,
+    openAlerts: clients.reduce((s, c) => s + c.openAlerts, 0),
+    highAlerts: clients.reduce((s, c) => s + c.highAlerts, 0),
+    clearToTrade: clients.filter((c) => c.clearToTrade).length,
+    impaired: clients.filter((c) => c.rag === 'crit').length,
+    docsOutstanding: clients.reduce((s, c) => s + c.docs, 0),
+    repeatOutreach: clients.filter((c) => c.outreach >= 3).length,
   };
 }
 
-/** Franchise scale behind the named accounts, for context on the tiles. */
+/** Scale behind the named book, so the tiles carry the right order of size. */
 export const FRANCHISE = {
-  coveredClients: 4812,
-  tradesYtd: 68.4,        // millions
-  revenueYtd: 2.41,       // billions
-  namedShare: 0.19,       // the 16 named names are 19% of franchise revenue
+  activeClients: 4812,
+  casesYtd: 9140,
+  alertsScreenedYtd: 1.24,   // millions
+  namedShare: 0.19,
 };
 
-// 12 months of revenue by line, $m. Oldest first. Advisory is visibly flat
-// while GTB compounds, which is the trend the lollipops report as health.
-export const REVENUE_TREND = {
+/**
+ * Onboarding funnel, current cases across the whole franchise. Ordered by
+ * stage, so the drop between stages is the thing worth reading.
+ */
+export const FUNNEL = [
+  { stage: 'Request raised', cases: 412, medianDays: 2 },
+  { stage: 'KYC pack issued', cases: 366, medianDays: 9 },
+  { stage: 'Documents received', cases: 281, medianDays: 24 },
+  { stage: 'Screening cleared', cases: 244, medianDays: 31 },
+  { stage: 'Credit and legal', cases: 198, medianDays: 39 },
+  { stage: 'Activated', cases: 174, medianDays: 47 },
+];
+
+/** Open work by queue, with ageing against SLA. */
+export const QUEUES = [
+  { id: 'onboarding', open: 412, breached: 61, oldestDays: 118, medianDays: 27, trend: 4.2 },
+  { id: 'pr', open: 289, breached: 38, oldestDays: 73, medianDays: 16, trend: -2.8 },
+  { id: 'edd', open: 47, breached: 9, oldestDays: 31, medianDays: 6, trend: 11.4 },
+  { id: 'screening', open: 168, breached: 22, oldestDays: 31, medianDays: 3, trend: -6.1 },
+];
+
+/** Screening alert mix, currently open across the franchise. */
+export const ALERT_MIX = [
+  { label: 'Adverse media', value: 74, color: 'var(--t-2)' },
+  { label: 'PEP', value: 41, color: 'var(--t-6)' },
+  { label: 'Sanctions', value: 23, color: 'var(--c-crit)' },
+  { label: 'Ownership change', value: 19, color: 'var(--t-1)' },
+  { label: 'Jurisdiction', value: 11, color: 'var(--t-4)' },
+];
+
+/**
+ * 12 months of case volume by queue. Emergency reviews climbing while periodic
+ * reviews fall is the pattern that matters: unplanned work displacing planned
+ * work is what pushes files past their due date in the first place.
+ */
+export const CASE_TREND = {
   labels: ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
   series: {
-    fic: [14.1, 14.8, 13.2, 15.4, 16.1, 16.8, 16.2, 17.4, 18.1, 18.9, 19.4, 20.2],
-    eq: [11.2, 11.8, 10.4, 12.1, 12.6, 13.1, 12.7, 13.4, 13.8, 14.1, 14.4, 14.9],
-    gtb: [8.4, 8.9, 8.2, 9.6, 10.2, 10.9, 11.2, 12.1, 12.8, 13.6, 14.2, 15.1],
-    adv: [5.8, 6.1, 4.9, 6.2, 6.4, 6.1, 5.8, 6.3, 6.0, 6.4, 6.1, 6.3],
-    lend: [7.2, 7.6, 7.1, 8.0, 8.3, 8.6, 8.4, 8.9, 9.2, 9.5, 9.8, 10.1],
+    onboarding: [324, 341, 298, 356, 372, 389, 378, 396, 402, 408, 411, 412],
+    pr: [412, 398, 366, 381, 374, 358, 344, 331, 318, 302, 294, 289],
+    edd: [18, 21, 19, 24, 27, 29, 31, 34, 38, 41, 44, 47],
+    screening: [244, 231, 218, 226, 219, 208, 196, 188, 181, 174, 170, 168],
   },
 };
-
-/** Live mandates, for the pipeline timeline. Weeks are 0 to 26 from today. */
-export const MANDATES = [
-  { client: 'Cobalt Pharma Group', line: 'adv', name: 'Cross-border acquisition', start: 0, end: 14, value: 480, stage: 'Diligence' },
-  { client: 'Solent Energy Group', line: 'lend', name: 'Term loan refinancing', start: 2, end: 9, value: 350, stage: 'Documentation' },
-  { client: 'Orion Sovereign Fund', line: 'gtb', name: 'Regional cash mandate', start: 0, end: 22, value: 210, stage: 'Onboarding' },
-  { client: 'Blackwater Industrials', line: 'adv', name: 'Divestment advisory', start: 5, end: 20, value: 620, stage: 'Pitch' },
-  { client: 'Meridian Capital Partners', line: 'fic', name: 'Rates hedging programme', start: 1, end: 7, value: 140, stage: 'Execution' },
-  { client: 'Pacific Rim Logistics', line: 'gtb', name: 'Supply chain finance', start: 4, end: 18, value: 290, stage: 'Structuring' },
-  { client: 'Kestrel Asset Management', line: 'eq', name: 'Equity derivatives overlay', start: 3, end: 11, value: 180, stage: 'Execution' },
-  { client: 'Cordillera Mining', line: 'lend', name: 'Reserve-based facility', start: 8, end: 24, value: 410, stage: 'Pitch' },
-];

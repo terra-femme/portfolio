@@ -4,13 +4,13 @@ import BankRelationships from './pages/BankRelationships';
 import BankPipeline from './pages/BankPipeline';
 import { useElapsed } from './components/hooks';
 import {
-  FACTS, LINES, REGIONS, TIERS, applySlicers, LAST_REFRESH,
+  FACTS, LOBS, REGIONS, RISK_RATINGS, applySlicers, LAST_REFRESH,
 } from './data/banking';
 
 const TABS = [
-  { id: 'coverage', label: 'Coverage', Component: BankCoverage, title: 'Coverage overview' },
-  { id: 'relationships', label: 'Relationships', Component: BankRelationships, title: 'Client scorecard' },
-  { id: 'pipeline', label: 'Pipeline', Component: BankPipeline, title: 'Live mandates' },
+  { id: 'coverage', label: 'Lifecycle', Component: BankCoverage, title: 'Client lifecycle health' },
+  { id: 'relationships', label: 'Client book', Component: BankRelationships, title: 'Client book' },
+  { id: 'pipeline', label: 'Queues', Component: BankPipeline, title: 'Queues and ageing' },
 ];
 
 const icons = {
@@ -33,7 +33,7 @@ const icons = {
  */
 export default function BankingDashboard() {
   const [tab, setTab] = useState('coverage');
-  const [slicers, setSlicers] = useState({ region: 'All', line: 'All', tier: 'All' });
+  const [slicers, setSlicers] = useState({ region: 'All', lob: 'All', risk: 'All' });
 
   const facts = useMemo(() => applySlicers(FACTS, slicers), [slicers]);
   const elapsed = useElapsed(LAST_REFRESH);
@@ -42,15 +42,15 @@ export default function BankingDashboard() {
   const PageComponent = active.Component;
 
   const set = (key) => (value) => setSlicers((s) => ({ ...s, [key]: value }));
-  const filtered = slicers.region !== 'All' || slicers.line !== 'All' || slicers.tier !== 'All';
-  const clearAll = () => setSlicers({ region: 'All', line: 'All', tier: 'All' });
+  const filtered = slicers.region !== 'All' || slicers.lob !== 'All' || slicers.risk !== 'All';
+  const clearAll = () => setSlicers({ region: 'All', lob: 'All', risk: 'All' });
 
   return (
     <div className="bank">
       <header className="bank-top">
         <span className="bank-brand">
           <span className="bank-logo" aria-hidden="true" />
-          Coverage<em>360</em>
+          Client<em>Lifecycle</em>
         </span>
 
         <nav className="bank-tabs" aria-label="Report pages">
@@ -83,9 +83,11 @@ export default function BankingDashboard() {
               each visual filtering itself. */}
           <div className="bank-slicers">
             <Slicer label="Region" value={slicers.region} options={REGIONS} onChange={set('region')} />
-            <Slicer label="Line" value={slicers.line} options={LINES.map((l) => l.id)}
-              display={(id) => LINES.find((l) => l.id === id)?.label ?? id} onChange={set('line')} />
-            <Slicer label="Tier" value={slicers.tier} options={TIERS} onChange={set('tier')} />
+            <Slicer label="Line" value={slicers.lob} options={LOBS.map((l) => l.id)}
+              display={(id) => LOBS.find((l) => l.id === id)?.label ?? id}
+              swatch={(id) => LOBS.find((l) => l.id === id)?.color}
+              onChange={set('lob')} />
+            <Slicer label="Risk" value={slicers.risk} options={RISK_RATINGS} onChange={set('risk')} />
             {filtered && (
               <button type="button" className="bank-clear" onClick={clearAll}>
                 Clear filters
@@ -105,7 +107,7 @@ export default function BankingDashboard() {
 }
 
 /** One slicer: a row of pills, "All" plus each value. */
-function Slicer({ label, value, options, onChange, display = (v) => v }) {
+function Slicer({ label, value, options, onChange, display = (v) => v, swatch }) {
   return (
     <div className="slicer" role="group" aria-label={label}>
       <span className="slicer-label">{label}</span>
@@ -118,6 +120,9 @@ function Slicer({ label, value, options, onChange, display = (v) => v }) {
             aria-pressed={opt === value}
             onClick={() => onChange(opt)}
           >
+            {opt !== 'All' && swatch && (
+              <span className="slicer-swatch" style={{ background: swatch(opt) }} aria-hidden="true" />
+            )}
             {opt === 'All' ? 'All' : display(opt)}
           </button>
         ))}
