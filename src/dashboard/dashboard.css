@@ -1934,67 +1934,6 @@
   .age-row { grid-template-columns: 120px 1fr 80px; }
 }
 
-/* ---- one lollipop card per line of business ---- */
-/* auto-fit so five cards sit in a row on a wide report and wrap cleanly when
-   the frame narrows, without a breakpoint per card count. */
-.lob-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(238px, 1fr));
-  gap: 12px;
-}
-.lob-card {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--line);
-  border-radius: 13px;
-  padding: 12px 13px 13px;
-  background: var(--surface-2);
-  transition: border-color 0.18s, background 0.18s;
-}
-.lob-card.is-on {
-  border-color: color-mix(in oklab, var(--c-1) 55%, transparent);
-  background: color-mix(in oklab, var(--c-1) 6%, var(--surface-2));
-}
-.lob-card-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 0 0 8px;
-  margin-bottom: 4px;
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  background: none;
-  font: inherit;
-  cursor: pointer;
-  text-align: left;
-}
-.lob-name {
-  font-family: var(--display);
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--ink);
-  flex: 1;
-  min-width: 0;
-}
-.lob-card .lolli-label { font-size: 11.5px; }
-.lob-card .lolli-value { font-size: 12px; }
-.lob-card .axis-label { font-size: 9.5px; }
-
-.lob-facts {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px 8px;
-  margin-top: 8px;
-  padding-top: 9px;
-  border-top: 1px solid var(--line);
-}
-.lob-facts li { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.lob-facts span { font-size: 9.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); }
-.lob-facts strong { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--ink); }
-.lob-facts strong.is-bad { color: #a8323c; }
-
 /* Horizontal variant of the stat list, for a full-width strip. */
 .stat-list.is-row {
   flex-direction: row;
@@ -2009,3 +1948,120 @@
   padding: 0;
 }
 .stat-list.is-row span { font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-faint); }
+
+/* ---- radial rings ---- */
+.rings { position: relative; flex: 0 0 auto; }
+.rings svg { display: block; overflow: visible; }
+.ring-track { fill: none; stroke: var(--surface-3); stroke-linecap: round; }
+.ring-value {
+  fill: none;
+  stroke-linecap: round;
+  /* Draw on by sweeping the dash, so each ring appears to travel round its own
+     track rather than fading in. 700 comfortably exceeds any arc these radii
+     produce, so the dash never repeats mid animation. */
+  stroke-dasharray: 700;
+  stroke-dashoffset: 700;
+  animation: ring-draw 0.9s cubic-bezier(0.32, 0.72, 0.3, 1) forwards;
+}
+@keyframes ring-draw { to { stroke-dashoffset: 0; } }
+.ring-group { transition: opacity 0.16s; cursor: pointer; }
+.ring-group.is-dimmed { opacity: 0.28; }
+
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  line-height: 1.1;
+}
+.ring-num {
+  font-family: var(--display);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+/* Bounded to the ring's hole. Without a max-width a long band name runs out
+   over the arcs and clips at the SVG edge. */
+.ring-lab {
+  max-width: 72%;
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-align: center;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* ---- one card per line, all five on one row ---- */
+/* Fixed five columns rather than auto-fit: the ask was a single row with no
+   ragged gap at the end, and auto-fit would wrap the fifth card onto its own
+   line at awkward widths and leave four gaps beside it. Below 1000px they go
+   to a scrolling strip instead, which keeps the row intact. */
+.lob-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.lob-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 12px 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, transform 0.18s;
+}
+.lob-card:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+.lob-card.is-on {
+  border-color: color-mix(in oklab, var(--c-1) 55%, transparent);
+  background: color-mix(in oklab, var(--c-1) 7%, var(--surface-2));
+}
+.lob-card-head { display: flex; align-items: center; gap: 7px; width: 100%; min-width: 0; }
+.lob-name {
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lob-counts {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.lob-counts > span { display: inline-flex; align-items: center; gap: 5px; }
+.lob-sub { font-size: 10.5px; color: var(--ink-faint); }
+
+@media (max-width: 1000px) {
+  /* Keep the single row and let it scroll, rather than wrapping into a ragged
+     grid with a hole at the end. */
+  .lob-cards {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+  .lob-card { flex: 0 0 180px; scroll-snap-align: start; }
+}

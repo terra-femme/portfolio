@@ -1,4 +1,4 @@
-import Lollipop from '../charts/Lollipop';
+import RadialRings from '../charts/RadialRings';
 import PetalGauge from '../charts/PetalGauge';
 import Donut from '../charts/Donut';
 import HBar from '../charts/HBar';
@@ -29,59 +29,58 @@ function Tile({ icon, label, value, unit, delta, goodWhen = 'up', foot }) {
 }
 
 /**
- * One lollipop per line of business, showing how that line's relationships are
- * distributed across good, needs attention and impaired.
+ * One radial card per line of business.
  *
- * The dot takes the RAG colour of the band it measures, not the line's colour:
- * the question this chart answers is "how many of my relationships are amber",
- * so amber has to look amber. The line's own colour stays on the card header,
- * the slicer pill and the matrix, where it identifies the line.
+ * Three concentric rings, one per population, each carrying the RAG colour of
+ * the band it measures so amber reads as amber. The line's own colour stays on
+ * the header swatch, the slicer pill and the matrix header, where it identifies
+ * the line rather than a condition.
  *
- * A distribution rather than a mean, because the mean hides the shape. Ten clean
+ * A distribution rather than a mean, because a mean hides the shape: ten clean
  * files and two impaired ones average the same as twelve mediocre ones, and
  * those are completely different mornings.
  */
-function LobCard({ lob, selected, onSelect }) {
-  const bands = [
-    { id: 'ok', label: RAG_LABEL.ok, value: lob.good, color: 'var(--c-ok)' },
-    { id: 'warn', label: RAG_LABEL.warn, value: lob.attention, color: 'var(--c-warn)' },
-    { id: 'crit', label: RAG_LABEL.crit, value: lob.impaired, color: 'var(--c-crit)' },
+function LobCard({ lob, scaleMax, selected, onSelect }) {
+  const rings = [
+    { label: RAG_LABEL.ok, short: 'Good', value: lob.good, color: 'var(--c-ok)' },
+    { label: RAG_LABEL.warn, short: 'Attention', value: lob.attention, color: 'var(--c-warn)' },
+    { label: RAG_LABEL.crit, short: 'Impaired', value: lob.impaired, color: 'var(--c-crit)' },
   ];
 
   return (
-    <article className={selected ? 'lob-card is-on' : 'lob-card'}>
-      <button
-        type="button"
-        className="lob-card-head"
-        aria-pressed={selected}
-        onClick={() => onSelect(selected ? null : lob.id)}
-      >
+    <button
+      type="button"
+      className={selected ? 'lob-card is-on' : 'lob-card'}
+      aria-pressed={selected}
+      onClick={() => onSelect(selected ? null : lob.id)}
+      title={`${lob.full}: ${lob.clients} files`}
+    >
+      <span className="lob-card-head">
         <span className="lob-swatch" style={{ background: lob.color }} aria-hidden="true" />
         <span className="lob-name">{lob.label}</span>
         <span className={`rag-badge is-${lob.rag}`}>{lob.health}</span>
-      </button>
+      </span>
 
-      <Lollipop
-        rows={bands.map((b) => ({
-          id: b.id,
-          label: b.label,
-          value: b.value,
-          color: b.color,
-          detail: `${b.value} of ${lob.clients} files on ${lob.full}`,
-        }))}
-        max={lob.clients}
-        labelWidth={104}
-        rowHeight={34}
-        valueFormat={(v) => String(v)}
+      <RadialRings
+        rings={rings}
+        max={scaleMax}
+        center={lob.clients}
+        centerLabel="files"
       />
 
-      <ul className="lob-facts">
-        <li><span>Live</span><strong>{lob.live}</strong></li>
-        <li><span>Onboarding</span><strong>{lob.pending}</strong></li>
-        <li><span>Blocked</span><strong className={lob.blocked ? 'is-bad' : undefined}>{lob.blocked}</strong></li>
-        <li><span>Overdue</span><strong className={lob.overdue ? 'is-bad' : undefined}>{lob.overdue}</strong></li>
-      </ul>
-    </article>
+      <span className="lob-counts">
+        {rings.map((r) => (
+          <span key={r.label}>
+            <span className="rag-dot" style={{ background: r.color }} />
+            {r.value}
+          </span>
+        ))}
+      </span>
+
+      <span className="lob-sub">
+        {lob.blocked} blocked · {lob.overdue} overdue
+      </span>
+    </button>
   );
 }
 
@@ -92,6 +91,8 @@ export default function BankCoverage({ facts, slicers, setSlicer }) {
 
   // Not a superlative: four lines tie on impaired count, so naming one "the
   // worst" would be false precision. The interesting fact is WHY they tie.
+  // One scale for every card: rings are only comparable if they share a max.
+  const scaleMax = Math.max(1, ...lobs.map((l) => l.clients));
   const impairedClients = clients.filter((c) => c.rag === 'crit');
   const cleanLines = lobs.filter((l) => l.impaired === 0);
   const bookHealth = clients.length
@@ -139,7 +140,7 @@ export default function BankCoverage({ facts, slicers, setSlicer }) {
         <header className="bank-card-head">
           <div>
             <h2>Relationship health by line of business</h2>
-            <p>Each line runs its own book and its own queue, so each gets its own chart</p>
+            <p>Rings are populations on a shared scale, so a shorter ring is a smaller group</p>
           </div>
           <span className="bank-legend-inline">
             {['ok', 'warn', 'crit'].map((r) => (
@@ -153,6 +154,7 @@ export default function BankCoverage({ facts, slicers, setSlicer }) {
             <LobCard
               key={lob.id}
               lob={lob}
+              scaleMax={scaleMax}
               selected={slicers.lob === lob.id}
               onSelect={(id) => setSlicer('lob')(id ?? 'All')}
             />
