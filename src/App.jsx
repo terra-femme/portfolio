@@ -7,16 +7,16 @@ import SocialLinks from './SocialLinks';
 import LeafSprout from './LeafSprout';
 import ScrambleNav from './ScrambleNav';
 import ScrambleWord from './ScrambleWord';
+import { navLinks } from './navLinks';
 import { tdProjects, tdLayout } from './projects';
 import profileImg from './prof_thumbnail.png';
 
-// An item without an href renders as plain text, not a link. "Audio Visual
-// Artist" is a descriptor rather than a destination -- it only ever jumped to
-// the copyright footer, which read as a dead link.
-const NAV_LINKS = [
-  { href: '#td', label: 'TouchDesigner' },
-  { label: 'Audio Visual Artist' },
-];
+// The nav list lives in one module shared with the dashboard page, because the
+// same label needs a different href per document: "#td" is a same-page anchor
+// here and has to become "./#td" over there. An item without an href renders as
+// plain text, not a link -- "Audio Visual Artist" is a descriptor rather than a
+// destination, and it only ever jumped to the copyright footer.
+const NAV_LINKS = navLinks('home');
 
 export default function App() {
   const [active, setActive] = useState(null); // currently expanded video
