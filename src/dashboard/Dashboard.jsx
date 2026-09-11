@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import AzureOverview from './pages/AzureOverview';
 import AzureCost from './pages/AzureCost';
 import AzureReliability from './pages/AzureReliability';
@@ -78,7 +78,7 @@ function parseHash(hash) {
   return { report: report.id, page: page ? page.id : report.pages[0].id };
 }
 
-export default function Dashboard() {
+export default function Dashboard({ embedded = false }) {
   const [route, setRoute] = useState(() => parseHash(window.location.hash));
   const [navOpen, setNavOpen] = useState(false);
 
@@ -114,10 +114,12 @@ export default function Dashboard() {
   const elapsed = useElapsed(report.sync);
 
   // Scroll back to the top when the page changes -- landing halfway down a new
-  // report because the previous one was long is disorienting.
+  // report because the previous one was long is disorienting. Scoped through a
+  // ref rather than a document query so it still finds the right scroller when
+  // the dashboard is embedded in a frame alongside other content.
+  const mainRef = useRef(null);
   useEffect(() => {
-    const main = document.querySelector('.dash-main');
-    if (main) main.scrollTo({ top: 0, behavior: 'auto' });
+    if (mainRef.current) mainRef.current.scrollTo({ top: 0, behavior: 'auto' });
   }, [route.report, route.page]);
 
   return (
@@ -177,7 +179,7 @@ export default function Dashboard() {
       />
 
       {/* ---------------------------------------------------------- main */}
-      <div className="dash-main">
+      <div className="dash-main" ref={mainRef}>
         <header className="dash-top">
           <button
             type="button"
@@ -205,18 +207,20 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Sits OUTSIDE the keyed <main> below, so it doesn't replay its
-            entrance animation on every page change -- it is standing context,
-            not page content. Rendered on all six pages rather than only the
-            landing one, because every page here is independently deep-linkable
-            and a visitor may well arrive on any of them. */}
-        <section className="dash-intro">
-          <p>
-            As an <strong>Azure AI Engineer</strong>, working closely with M365 and the
-            <strong> Power Platform</strong> is inevitable and my skills with{' '}
-            <strong>Power BI</strong> and data visualisation are constantly being refined.
-          </p>
-        </section>
+        {/* The framed view puts this copy on the page around the frame, so
+            rendering it again inside would duplicate it on all six pages. The
+            standalone (?full=1) view has no page around it, so it keeps it.
+            Sits outside the keyed <main> below so it does not replay its
+            entrance animation on every page change. */}
+        {!embedded && (
+          <section className="dash-intro">
+            <p>
+              As an <strong>Azure AI Engineer</strong>, working closely with M365 and the
+              <strong> Power Platform</strong> is inevitable and my skills with{' '}
+              <strong>Power BI</strong> and data visualisation are constantly being refined.
+            </p>
+          </section>
+        )}
 
         {/* key forces a remount on navigation so every counter and chart
             replays its entrance animation instead of silently swapping data */}

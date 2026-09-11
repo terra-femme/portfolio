@@ -12,7 +12,11 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
-:root {
+/* Scoped to .dash, NOT :root. The dashboard is now embedded in a light page,
+   and tokens on :root would repaint the portfolio around the frame. Custom
+   properties inherit, and every rule below lives inside .dash, so scoping costs
+   nothing and contains the theme completely. */
+.dash {
   /* surfaces, darkest to lightest */
   --bg: #0b0f0d;
   --surface: #121815;
@@ -54,13 +58,12 @@
   --nav-w: 264px;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: var(--body);
-  font-size: 14px;
+/* Standalone mode only (?full=1): paint the document dark. The framed view
+   leaves the page white and lets the frame supply the dark ground. */
+:root[data-full] body {
+  background: #0b0f0d;
+  color: #e9f0eb;
+  font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -74,19 +77,27 @@ body {
 
 /* =============================================================== shell === */
 
+/* Fills its container rather than the viewport. Standalone it is handed the
+   viewport; embedded it is handed the frame's stage. The dashboard does not
+   need to know which. */
 .dash {
   display: grid;
   grid-template-columns: var(--nav-w) 1fr;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
+  position: relative;   /* containing block for the mobile drawer */
+  background: var(--bg);
+  font-family: var(--body);
+  font-size: 14px;
+  color: var(--ink);
+  overflow: hidden;
 }
+:root[data-full] .dash { height: 100dvh; }
 
 .dash-main {
   min-width: 0;              /* lets grid children shrink instead of overflowing */
   display: flex;
   flex-direction: column;
-  max-height: 100vh;
-  max-height: 100dvh;
+  height: 100%;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--surface-3) transparent;
@@ -100,10 +111,7 @@ body {
   display: flex;
   flex-direction: column;
   padding: 26px 0 20px;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--surface-3) transparent;
@@ -990,14 +998,13 @@ body {
 }
 
 @media (max-width: 900px) {
-  :root { --nav-w: 0px; }
-
-  .dash { grid-template-columns: 1fr; }
+  /* Scoped like every other token: on :root this would leak out of the frame. */
+  .dash { --nav-w: 0px; grid-template-columns: 1fr; }
 
   /* Sidebar becomes an off-canvas drawer. Translating rather than toggling
      display keeps it in the accessibility tree and lets it animate. */
   .dash-nav {
-    position: fixed;
+    position: absolute;
     top: 0; left: 0; bottom: 0;
     width: 274px;
     z-index: 40;
@@ -1009,7 +1016,7 @@ body {
 
   .nav-scrim {
     display: block;
-    position: fixed;
+    position: absolute;
     inset: 0;
     z-index: 30;
     border: 0;
@@ -1021,7 +1028,6 @@ body {
   .is-nav-open .nav-scrim { opacity: 1; pointer-events: auto; }
 
   .nav-toggle { display: flex; }
-  .dash-main { max-height: none; overflow-y: visible; }
 
   .kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .span-4, .span-5, .span-7, .span-8, .span-12 { grid-column: 1 / -1; }

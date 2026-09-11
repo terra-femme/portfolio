@@ -1,11 +1,30 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import DashboardPage from './DashboardPage';
 import Dashboard from './Dashboard';
+import '../index.css';
 import './dashboard.css';
 
-// Second Vite entry point. The dashboard is a separate document from the
-// portfolio, not a route inside it, so it gets its own root, its own stylesheet
-// and its own bundle -- visitors who never open it never download it.
+/**
+ * Second Vite entry point, with two modes.
+ *
+ * Default: the dashboard framed inside the portfolio's chrome, so it reads as a
+ * piece of the site rather than a different site.
+ *
+ * `?full=1`: the dashboard alone, filling the viewport. A six-page BI report is
+ * genuinely better with the whole screen, and the framed view links here so the
+ * frame never becomes a constraint. The root gets `data-full` so the stylesheet
+ * can paint the page dark instead of the portfolio's white.
+ *
+ * index.css loads first and dashboard.css second, which matters: the dashboard
+ * tokens are scoped under `.dash` precisely so they cannot leak out and repaint
+ * the light page around the frame.
+ */
+const full = new URLSearchParams(window.location.search).has('full');
+if (full) document.documentElement.setAttribute('data-full', '');
+
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode><Dashboard /></React.StrictMode>
+  <React.StrictMode>
+    {full ? <Dashboard /> : <DashboardPage />}
+  </React.StrictMode>
 );

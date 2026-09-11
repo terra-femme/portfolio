@@ -559,3 +559,92 @@ them.
 
 Verified: nav renders "Dashboards", intro renders the user's sentence only,
 disclosure intact in two places, no console errors.
+
+---
+
+# Session 5: The dashboard becomes a framed piece of the portfolio
+
+## Title
+
+**Rebuilt the dashboard page to use the portfolio's own chrome, with the report
+running inside a framed window rather than as a separate-looking site.**
+
+## What changed
+
+`dashboard.html` is still its own document and its own bundle, but it now wears
+the home page's identity: the same `<nav>`, the same `Background3D`, the same
+type scale, the same accent and border language, and the same Lenis smooth
+scroll. The profile sidebar is dropped so a piece gets the full measure.
+
+The report keeps its dark theme and sits inside `.piece-frame`, a bordered
+window with chrome dots and a URL strip. A dark panel floating on a light page
+reads as an application being demonstrated; the frame is what makes that legible
+rather than looking like a section that forgot the stylesheet.
+
+New: `src/navLinks.js` (one nav definition shared by both documents),
+`src/dashboard/DashboardPage.jsx` (the page shell), `.piece-*` styles in
+`index.css`, and a `?full=1` mode that renders the report alone on a dark page
+for when the frame is too small.
+
+## Root Cause of the old feel
+
+Two separate documents with two separate design systems. Nothing tied them
+together except a link, so clicking the nav felt like leaving the site.
+
+## Fix
+
+The one piece of real engineering here was containing the dark theme. Every
+dashboard token lived on `:root`, which on a light page would repaint the
+portfolio around the frame. They are now scoped to `.dash`:
+
+```css
+/* Scoped to .dash, NOT :root. Custom properties inherit, and every rule below
+   lives inside .dash, so scoping costs nothing and contains the theme. */
+.dash { --bg: #0b0f0d; --ink: #e9f0eb; /* ... */ }
+```
+
+The dark `body` rule became `:root[data-full] body`, so it applies only in
+standalone mode. Viewport units became percentages, so the report fills whatever
+box it is handed: the viewport standalone, the frame's stage when embedded. The
+mobile drawer moved from `position: fixed` to `absolute` inside `.dash`, or it
+would have covered the portfolio nav outside the frame.
+
+Bundling held up. Both documents import `Background3D` and `index.css`, so
+Rollup emits them as shared chunks:
+
+| Chunk | index.html | dashboard.html |
+|---|---|---|
+| `src-*.js` (React, three.js) | yes | yes |
+| `src-*.css` (portfolio) | yes | yes |
+| `dashboard-*.js` 68 kB | no | yes |
+| `dashboard-*.css` 25 kB | no | yes |
+
+Arriving from the home page therefore costs only the 93 kB delta, because the
+heavy shared chunk is already cached.
+
+## Education
+
+**Scope a theme by its root element, not by `:root`.** Custom properties
+inherit, so moving tokens onto the component's own container contains them
+completely at zero cost. This is what makes a dark widget safe to embed in a
+light page.
+
+**Size to the container, not the viewport.** `100vh` is a promise that the
+component owns the screen. `height: 100%` lets the same component be full screen
+or a 737px frame with no code change.
+
+**`position: fixed` escapes any frame.** An off-canvas drawer inside an embedded
+piece has to be `absolute` against the piece, or it covers the host page.
+
+**A debugging note worth keeping.** The drawer appeared not to open under test:
+`is-nav-open` was applied, the selector matched, and the rule was both later and
+more specific, yet the computed transform stayed at the closed value. Even an
+inline style failed to move it. The cause was a `CSSTransition` stuck in
+`running` state, and a running animation outranks inline styles. It was stuck
+because the test iframe never paints, so the document timeline never advances:
+the same frozen-timeline artifact behind the earlier `requestAnimationFrame` and
+`ResizeObserver` findings. Removing the transition proved the cascade was always
+correct, with the drawer opening flush to the frame edge.
+
+The general lesson: when a style will not apply and the cascade says it should,
+check `element.getAnimations()` before rewriting any CSS.
