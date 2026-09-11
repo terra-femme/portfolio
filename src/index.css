@@ -456,3 +456,12 @@ a { color: inherit; text-decoration: none; }
   .piece-frame { height: clamp(480px, 70vh, 640px); }
   .piece-url { display: none; }
 }
+
+/* Lede paragraph above a framed piece. Same measure discipline as the intro. */
+.piece-lede {
+  max-width: 74ch;
+  margin: -18px 0 26px;
+  font-size: clamp(14px,1.5vw,16px);
+  line-height: 1.65;
+  color: var(--ink-dim);
+}

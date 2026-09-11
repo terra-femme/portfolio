@@ -648,3 +648,92 @@ correct, with the drawer opening flush to the frame edge.
 
 The general lesson: when a style will not apply and the cascade says it should,
 check `element.getAnimations()` before rewriting any CSS.
+
+---
+
+# Session 6: A second report, and Power BI interaction on the first
+
+## Title
+
+**Added Coverage360, an institutional client coverage report, as the second
+framed piece, and gave the first report a Power BI style slicer.**
+
+## What was built
+
+A second report under the first, on the same page, in its own frame. Content is
+client relationship health across lines of business (FIC, Equities, GTB,
+Advisory, Lending), which is the investment banking framing the user asked for.
+
+New files: `data/banking.js`, `BankingDashboard.jsx`, three pages
+(`BankCoverage`, `BankRelationships`, `BankPipeline`), and two new chart types,
+`Lollipop.jsx` and `PetalGauge.jsx`.
+
+The visual language follows the supplied reference: near black ground, 16px
+cards, a centred pill tab group with a solid light active pill, KPI tiles with
+coloured delta pills, and an annotation row under each visual. Report 2 is
+scoped under `.bank` with its own slightly darker palette, so the two reports
+read as two products rather than one stylesheet used twice.
+
+## Why a lollipop for line of business health
+
+The user called this correctly. A bar chart spends a large filled rectangle to
+encode a single number at its tip, and with five lines side by side that ink
+competes with itself. A lollipop puts the value in one unambiguous place, the
+dot, and the stem only carries the eye there, so a five point difference stays
+readable. Every row also carries a target tick at 62, because a health score
+with no threshold invites the reader to invent their own.
+
+## Cross-filtering
+
+The interaction the first report did not have, and the thing the reference
+material kept pointing at. There is one fact table of 80 rows, one filter state
+in the shell, and every visual is a pure function of the filtered rows. Nothing
+holds a private copy, so nothing can disagree.
+
+Verified by driving it: selecting the GTB slicer moved revenue from $631m to
+$126m, wallet share from 22.9% to 30.6%, and the composite gauge from 66 to 80.
+Clicking the Advisory lollipop mark produced 50 and lit the matching slicer pill,
+which is cross-filtering from a mark rather than from a control.
+
+The first report now has the same idiom in its own palette: a region slicer that
+narrows the map, the bars, and the traffic tiles together.
+
+## Error / Issue
+
+**No petal on the radial gauge ever lit.** The component set `fill={color}` on
+each lit segment and the gauge rendered entirely grey.
+
+**Root cause:** a CSS rule beats an SVG presentation attribute, always, at any
+specificity. `.petal { fill: var(--surface-3) }` silently won over the `fill`
+attribute on every path. The lollipop dots were unaffected only because no CSS
+rule sets their fill, which is exactly why the bug looked inconsistent.
+
+**Fix:** move the lit colour to an inline style, which does outrank a class rule.
+
+```jsx
+// Inline style, NOT a fill attribute. A CSS rule beats an SVG presentation
+// attribute at any specificity, so `.petal { fill }` silently won.
+style={{ animationDelay: `${i * 22}ms`, ...(i < lit ? { fill: color } : null) }}
+```
+
+Also fixed: the page title and the first card title were the same sentence
+verbatim, so the page read as if it had stuttered.
+
+## Education
+
+**SVG presentation attributes sit below every CSS rule in the cascade.**
+`fill`, `stroke`, `opacity` and friends look like styling but rank beneath even
+a single class selector. If a component sets them from props, no stylesheet may
+set the same property, or the prop is dead. Inline `style` is the escape hatch.
+
+**One fact table, many visuals.** Cross-filtering is only trustworthy when
+every visual derives from the same rows. The moment one panel keeps its own
+aggregate, a filter makes the report contradict itself.
+
+**Encode one measure per geometry.** The mandate timeline uses length for
+duration and leaves deal value as a number in the last column. Putting value
+into bar width too would have made a bar that means two things at once.
+
+**Colour is never the only channel.** The RAG matrix prints wallet share and its
+movement inside every coloured cell, so the grid still works for a reader with a
+colour vision deficiency, and in print.

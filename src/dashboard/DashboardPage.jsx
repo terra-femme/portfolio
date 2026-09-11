@@ -4,6 +4,7 @@ import Background3D from '../Background3D';
 import ScrambleNav from '../ScrambleNav';
 import { navLinks } from '../navLinks';
 import Dashboard from './Dashboard';
+import BankingDashboard from './BankingDashboard';
 
 const NAV_LINKS = navLinks('dashboard');
 
@@ -108,8 +109,48 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          {/* A second piece drops in here as another <section className="section">
-              with its own .piece-frame. The column spacing is already set. */}
+          <section className="section" id="coverage">
+            <div className="section-head">
+              <span className="idx">02</span>
+              <h2>Client coverage</h2>
+              <span className="count">3 pages &middot; cross-filtered</span>
+            </div>
+
+            <p className="piece-lede">
+              I am versed in utilizing industry accepted Tableau as well, for massive
+              amounts of data. In investment banks with multiple lines like FIC, Markets
+              and GTB, I need to visualize the health of each client relationship in the
+              client&rsquo;s proprietary system.
+            </p>
+
+            <div className="piece-frame">
+              <div className="piece-chrome">
+                <span className="piece-dots" aria-hidden="true">
+                  <span /><span /><span />
+                </span>
+                <span className="piece-url">coverage360 &middot; institutional client analytics</span>
+                <a
+                  className="piece-open"
+                  href="./dashboard.html?full=1&amp;report=coverage"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Open the coverage report full screen in a new tab"
+                >
+                  Open full screen
+                </a>
+              </div>
+
+              <div className="piece-stage" data-lenis-prevent>
+                <BankingDashboard />
+              </div>
+            </div>
+
+            <div className="piece-caption">
+              <span><strong>Slicers</strong> region, line, tier, cross-filtering every visual</span>
+              <span><strong>Marks</strong> lollipop, RAG matrix, mandate timeline</span>
+              <span><strong>Model</strong> one 80-row fact table, every figure aggregated from it</span>
+            </div>
+          </section>
 
           <footer className="footer" id="contact">
             <div className="meta">

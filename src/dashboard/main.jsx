@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import DashboardPage from './DashboardPage';
 import Dashboard from './Dashboard';
+import BankingDashboard from './BankingDashboard';
 import '../index.css';
 import './dashboard.css';
 
@@ -20,11 +21,13 @@ import './dashboard.css';
  * tokens are scoped under `.dash` precisely so they cannot leak out and repaint
  * the light page around the frame.
  */
-const full = new URLSearchParams(window.location.search).has('full');
+const params = new URLSearchParams(window.location.search);
+const full = params.has('full');
+const report = params.get('report');
 if (full) document.documentElement.setAttribute('data-full', '');
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {full ? <Dashboard /> : <DashboardPage />}
+    {full ? (report === 'coverage' ? <BankingDashboard /> : <Dashboard />) : <DashboardPage />}
   </React.StrictMode>
 );

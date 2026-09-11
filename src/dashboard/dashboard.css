@@ -1254,3 +1254,473 @@
   .dash-intro { padding: 13px 15px; }
   .dash-intro p { font-size: 12.5px; }
 }
+
+/* Power BI style slicer for report 1. Same pill idiom as report 2's slicers,
+   drawn in report 1's palette so each report still looks like itself. */
+.pbi-slicer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  margin-bottom: 14px;
+  background: var(--surface-2);
+  border-radius: 999px;
+}
+.pbi-pill {
+  padding: 5px 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-dim);
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s, color 0.18s;
+}
+.pbi-pill:hover { color: var(--ink); }
+.pbi-pill.is-on { background: color-mix(in oklab, var(--c-1) 20%, transparent); color: var(--c-1); font-weight: 600; }
+
+/* ==================================================== report 2: coverage === */
+/* Scoped under .bank for the same reason .dash is: this is embedded in a light
+   page and tokens on :root would repaint the portfolio around the frame.
+   A flatter, rounder, more saturated take than the first report, so the two
+   read as two different products rather than one stylesheet used twice. */
+.bank {
+  --bg: #0a0c0b;
+  --surface: #131716;
+  --surface-2: #1b201e;
+  --surface-3: #242a27;
+  --line: rgba(255,255,255,0.06);
+  --line-strong: rgba(255,255,255,0.12);
+  --ink: #f1f5f2;
+  --ink-dim: #93a09a;
+  --ink-faint: #63706a;
+
+  /* A Tableau style categorical palette, lifted for a dark ground. */
+  --t-1: #6aa3e0;
+  --t-2: #f2a65a;
+  --t-3: #e7737a;
+  --t-4: #63c9c0;
+  --t-5: #6bbf73;
+  --t-6: #b98fe0;
+
+  --c-ok: #45d17f;
+  --c-warn: #f2b544;
+  --c-crit: #f2626f;
+  --c-1: #45d17f;
+
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 14px;
+}
+:root[data-full] .bank { height: 100dvh; }
+
+/* ---- top bar: brand, centred pill tabs, sync ---- */
+.bank-top {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px clamp(14px, 2.2vw, 24px);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.bank-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  flex: 1;
+  min-width: 0;
+}
+.bank-brand em { font-style: normal; color: var(--c-1); }
+.bank-logo {
+  width: 20px; height: 20px; border-radius: 7px;
+  background: linear-gradient(140deg, var(--c-1), var(--t-4));
+  flex: 0 0 auto;
+}
+
+.bank-tabs {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+.bank-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 15px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-dim);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+.bank-tab:hover { color: var(--ink); }
+/* The active pill is a solid light fill, the one high contrast element in the
+   chrome, so the current page is unmistakable at a glance. */
+.bank-tab.is-on { background: var(--ink); color: #0a0c0b; font-weight: 600; }
+.bank-tab-icon { display: flex; width: 14px; height: 14px; }
+.bank-tab-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.bank-tab.is-on .bank-tab-icon svg { stroke-width: 1.9; }
+
+.bank-sync {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* ---- scrolling body ---- */
+.bank-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: clamp(14px, 2.2vw, 24px);
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-3) transparent;
+}
+
+.bank-titlerow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.bank-titlerow h1 {
+  font-family: var(--display);
+  font-size: clamp(17px, 2.2vw, 22px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* ---- slicers ---- */
+.bank-slicers { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.slicer { display: flex; align-items: center; gap: 8px; }
+.slicer-label {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.slicer-pills { display: flex; gap: 4px; padding: 3px; background: var(--surface-2); border-radius: 999px; }
+.slicer-pill {
+  padding: 5px 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-dim);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s, color 0.18s;
+}
+.slicer-pill:hover { color: var(--ink); }
+.slicer-pill.is-on { background: color-mix(in oklab, var(--c-1) 22%, transparent); color: var(--c-1); font-weight: 600; }
+.bank-clear {
+  padding: 6px 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-dim);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s;
+}
+.bank-clear:hover { color: var(--c-crit); border-color: color-mix(in oklab, var(--c-crit) 45%, transparent); }
+
+.bank-empty { padding: 40px 0; text-align: center; color: var(--ink-faint); }
+.bank-empty button { border: 0; background: none; color: var(--c-1); font: inherit; cursor: pointer; text-decoration: underline; }
+
+/* ---- grid + cards ---- */
+.bank-grid { display: grid; grid-template-columns: repeat(12, minmax(0,1fr)); gap: 14px; align-items: stretch; }
+.bank-span-4 { grid-column: span 4; }
+.bank-span-8 { grid-column: span 8; }
+.bank-span-6 { grid-column: span 6; }
+.bank-span-12 { grid-column: span 12; }
+
+.bank-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px 18px 18px;
+  animation: rise 0.5s cubic-bezier(0.22,1,0.36,1) both;
+}
+.bank-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+.bank-card-head h2 { font-family: var(--display); font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em; }
+.bank-card-head p { margin-top: 3px; font-size: 12px; color: var(--ink-dim); }
+.bank-chip {
+  flex: 0 0 auto;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+
+/* ---- KPI tiles ---- */
+.bank-tiles {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 14px;
+}
+.bank-tile {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 15px 17px 16px;
+  animation: rise 0.5s cubic-bezier(0.22,1,0.36,1) both;
+}
+.bank-tile header { display: flex; align-items: center; gap: 9px; margin-bottom: 11px; }
+.bank-tile-icon {
+  width: 26px; height: 26px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--ink-dim);
+}
+.bank-tile-icon svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.bank-tile-label { font-size: 12px; color: var(--ink-dim); }
+.bank-tile-value {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex-wrap: wrap;
+  font-family: var(--display);
+  font-size: clamp(24px, 3vw, 31px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.bank-tile-value em { font-style: normal; font-size: 0.5em; color: var(--ink-dim); margin-left: -4px; }
+.bank-pill {
+  font-family: var(--body);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.bank-pill.is-good { background: color-mix(in oklab, var(--c-ok) 20%, transparent); color: var(--c-ok); }
+.bank-pill.is-bad { background: color-mix(in oklab, var(--c-crit) 20%, transparent); color: var(--c-crit); }
+.bank-tile-foot { margin-top: 9px; font-size: 11.5px; color: var(--ink-faint); line-height: 1.45; }
+
+/* ---- annotation row, the reference "AI note:" pattern ---- */
+.bank-note {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-dim);
+}
+.bank-note strong { color: var(--ink); font-weight: 600; }
+
+/* ---- lollipop ---- */
+.lolli-wrap { position: relative; width: 100%; flex: 1 1 auto; }
+.lolli-wrap svg { display: block; overflow: visible; }
+.lolli-row { transition: opacity 0.18s; }
+.lolli-row.is-dimmed { opacity: 0.32; }
+.lolli-label { fill: var(--ink); font-size: 12.5px; font-family: var(--body); }
+.lolli-track { stroke: var(--surface-3); stroke-width: 2; stroke-linecap: round; }
+.lolli-stem {
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.55;
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: lolli-grow 0.65s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes lolli-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.lolli-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: r 0.15s;
+  animation: lolli-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes lolli-pop { from { opacity: 0; transform: scale(0.2); } to { opacity: 1; transform: scale(1); } }
+.lolli-target { stroke: var(--ink-faint); stroke-width: 1.5; stroke-dasharray: 2 2; }
+.lolli-value {
+  fill: var(--ink);
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-anchor: end;
+}
+.lolli-tip {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  font-size: 11.5px;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ---- petal gauge ---- */
+.bank-gauge-wrap { flex: 1; display: flex; align-items: center; justify-content: center; }
+.petal-gauge { position: relative; text-align: center; }
+.petal-gauge svg { display: block; }
+/* Unlit only. The lit fill arrives as an inline style from the component,
+   because a CSS rule outranks an SVG fill attribute and would win here. */
+.petal { fill: var(--surface-3); animation: pop 0.4s ease-out both; }
+.petal.is-lit { filter: brightness(1.05); }
+.petal-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.petal-value {
+  font-family: var(--display);
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.petal-value em { font-style: normal; font-size: 0.55em; color: var(--ink-dim); }
+.petal-label { font-size: 11.5px; color: var(--ink-dim); margin-top: 2px; }
+
+.bank-legend { list-style: none; display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+.bank-legend li { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-dim); }
+.bank-legend em { margin-left: auto; font-style: normal; color: var(--ink); font-variant-numeric: tabular-nums; }
+.bank-legend-inline { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-dim); }
+.bank-legend-inline span { display: inline-flex; align-items: center; gap: 6px; }
+.rag-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+.rag-dot.is-ok { background: var(--c-ok); }
+.rag-dot.is-warn { background: var(--c-warn); }
+.rag-dot.is-crit { background: var(--c-crit); }
+
+/* ---- RAG matrix ---- */
+.matrix-wrap { overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--surface-3) transparent; }
+.matrix { width: 100%; border-collapse: separate; border-spacing: 0 4px; font-size: 12.5px; white-space: nowrap; }
+.matrix thead th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 10px 8px;
+}
+.matrix thead th.is-right { text-align: right; }
+.matrix-line { text-align: center !important; }
+.matrix-line button {
+  border: 0; background: none; color: inherit; font: inherit;
+  letter-spacing: inherit; text-transform: inherit; cursor: pointer;
+}
+.matrix-line button:hover { color: var(--c-1); }
+.matrix tbody tr { background: var(--surface-2); cursor: pointer; transition: background 0.15s; }
+.matrix tbody tr:hover { background: var(--surface-3); }
+.matrix tbody tr.is-open { background: color-mix(in oklab, var(--c-1) 12%, var(--surface-2)); }
+.matrix tbody td { padding: 9px 10px; color: var(--ink-dim); }
+.matrix tbody td:first-child { border-radius: 10px 0 0 10px; }
+.matrix tbody td:last-child { border-radius: 0 10px 10px 0; }
+.matrix td.is-right { text-align: right; }
+.matrix-name strong { color: var(--ink); font-weight: 600; }
+/* Cells carry the number as well as the colour: colour alone fails for anyone
+   with a colour vision deficiency, and fails in print. */
+.matrix-cell { text-align: center; font-variant-numeric: tabular-nums; }
+.matrix-cell .matrix-num { display: block; font-weight: 600; color: var(--ink); }
+.matrix-cell .matrix-trend { display: block; font-size: 10px; opacity: 0.7; }
+.matrix-cell.is-ok { background: color-mix(in oklab, var(--c-ok) 17%, transparent); }
+.matrix-cell.is-warn { background: color-mix(in oklab, var(--c-warn) 17%, transparent); }
+.matrix-cell.is-crit { background: color-mix(in oklab, var(--c-crit) 20%, transparent); }
+.matrix-cell.is-empty { color: var(--ink-faint); }
+.rag-badge {
+  display: inline-block;
+  min-width: 34px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.rag-badge.is-ok { background: color-mix(in oklab, var(--c-ok) 20%, transparent); color: var(--c-ok); }
+.rag-badge.is-warn { background: color-mix(in oklab, var(--c-warn) 20%, transparent); color: var(--c-warn); }
+.rag-badge.is-crit { background: color-mix(in oklab, var(--c-crit) 22%, transparent); color: var(--c-crit); }
+.bank-drill { border-color: color-mix(in oklab, var(--c-1) 30%, var(--line)); }
+
+/* ---- gantt ---- */
+.gantt { position: relative; }
+.gantt-axis { position: relative; height: 18px; margin-left: 210px; margin-right: 74px; }
+.gantt-tick { position: absolute; transform: translateX(-50%); font-size: 10.5px; color: var(--ink-faint); }
+.gantt-rows { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.gantt-row { display: grid; grid-template-columns: 200px 1fr 66px; gap: 10px; align-items: center; }
+.gantt-label { min-width: 0; }
+.gantt-label strong { display: block; font-size: 12.5px; color: var(--ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gantt-label span { display: block; font-size: 11px; color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gantt-track { position: relative; height: 30px; background: var(--surface-2); border-radius: 8px; overflow: hidden; }
+.gantt-gridline { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+.gantt-bar {
+  position: absolute;
+  top: 5px; bottom: 5px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  min-width: 34px;
+  transform-origin: left center;
+  animation: grow-right 0.6s cubic-bezier(0.22,1,0.36,1) both;
+}
+.gantt-bar em {
+  font-style: normal;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(10,12,11,0.82);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gantt-value { text-align: right; font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 1100px) {
+  .bank-tiles { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .bank-span-4, .bank-span-6, .bank-span-8 { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .bank-top { flex-wrap: wrap; }
+  .bank-brand, .bank-sync { flex: 0 0 auto; }
+  .bank-tabs { order: 3; width: 100%; overflow-x: auto; }
+  .bank-tiles { grid-template-columns: 1fr; }
+  .gantt-row { grid-template-columns: 130px 1fr 56px; }
+  .gantt-axis { margin-left: 140px; margin-right: 64px; }
+}

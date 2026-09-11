@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Panel, { Callout, Pill } from '../components/Panel';
 import KpiTile from '../components/KpiTile';
 import LineChart from '../charts/LineChart';
@@ -8,11 +9,20 @@ import RegionMap from '../charts/RegionMap';
 import { fmtCurrency, fmtCompact } from '../charts/primitives';
 import {
   azureKpis, dailySpend, serviceMix, regions, trafficFlows, sloGauges, incidents,
-  SPEND_30D, REQUESTS_30D_M,
+  SPEND_30D,
 } from '../data/azure';
 
 export default function AzureOverview() {
-  const primary = regions.reduce((a, b) => (a.value > b.value ? a : b));
+  // A Power BI style slicer. Selecting a region narrows the map, the bars and
+  // the traffic tiles together, because all three read from the same filtered
+  // array rather than each holding its own copy.
+  const [region, setRegion] = useState('All');
+  const shownRegions = region === 'All' ? regions : regions.filter((r) => r.id === region);
+  const shownRequests = shownRegions.reduce((sum, r) => sum + r.requestsM, 0);
+  const shownFlows = region === 'All'
+    ? trafficFlows
+    : trafficFlows.filter((f) => f.from === region || f.to === region);
+
   const observability = serviceMix[0];
 
   // Derived, not typed. The daily series is rescaled to match the headline
@@ -36,27 +46,52 @@ export default function AzureOverview() {
             reader wants without hovering, and the bars below give the exact
             ranking a bubble chart cannot. */}
         <Panel span={4} title="Global footprint" subtitle="Traffic by Azure region">
+          {/* Slicer pills, the Power BI idiom: one control, every visual in the
+              panel responds. */}
+          <div className="pbi-slicer" role="group" aria-label="Filter by region">
+            {['All', ...regions.map((r) => r.id)].map((id) => {
+              const meta = regions.find((r) => r.id === id);
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className={id === region ? 'pbi-pill is-on' : 'pbi-pill'}
+                  aria-pressed={id === region}
+                  onClick={() => setRegion(id)}
+                >
+                  {id === 'All' ? 'All regions' : meta.label}
+                </button>
+              );
+            })}
+          </div>
+
           <ul className="mini-kpis">
-            <li><span>Regions</span><strong>{regions.length}</strong></li>
-            <li><span>Requests 30d</span><strong>{REQUESTS_30D_M.toFixed(1)}<em>M</em></strong></li>
-            <li><span>In {primary.label}</span><strong>{primary.value}<em>%</em></strong></li>
+            <li><span>Regions</span><strong>{shownRegions.length}</strong></li>
+            <li><span>Requests 30d</span><strong>{shownRequests.toFixed(1)}<em>M</em></strong></li>
+            <li><span>Share</span><strong>{shownRegions.reduce((s2, r) => s2 + r.value, 0)}<em>%</em></strong></li>
           </ul>
 
-          {/* maxHeight is a ceiling, not a target. At span-4 the panel is about
-              476px wide, so the 2.55:1 world fits at ~186px tall and fills the
-              width edge to edge. The previous 124px cap made it 316px wide
-              inside that 476px box, stranding 160px of gutter either side. */}
-          <RegionMap regions={regions} flows={trafficFlows} maxHeight={200} legend={false} />
+          <RegionMap regions={shownRegions} flows={shownFlows} maxHeight={200} legend={false} />
 
           <HBar
-            rows={regions.map((r) => ({ label: r.label, value: r.value, color: 'var(--c-2)' }))}
+            rows={shownRegions.map((r) => ({ label: r.label, value: r.value, color: 'var(--c-2)' }))}
             valueFormat={(v) => v + '%'}
           />
 
           <Callout>
-            Four of five flows originate in <strong>East US</strong>. That is the
-            single-region concentration behind INC-2291. The other regions had nowhere to
-            fail over to.
+            {region === 'All' ? (
+              <>
+                Four of five flows originate in <strong>East US</strong>. That is the
+                single-region concentration behind INC-2291. The other regions had nowhere
+                to fail over to.
+              </>
+            ) : (
+              <>
+                Filtered to <strong>{shownRegions[0].label}</strong>: {shownRequests.toFixed(1)}M
+                requests, p95 {shownRegions[0].p95}ms. Select <strong>All regions</strong> to
+                restore the full view.
+              </>
+            )}
           </Callout>
         </Panel>
 
