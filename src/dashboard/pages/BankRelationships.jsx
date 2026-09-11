@@ -10,10 +10,21 @@ import { LINES, byClient, ragOf, healthOf, RAG_LABEL } from '../data/banking';
  * the eye finds a row of red instantly. The number stays in the cell so the
  * colour never has to carry the value on its own.
  */
+const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth'];
+
 export default function BankRelationships({ facts, setSlicer }) {
-  const clients = byClient(facts);
+  const clients = byClient(facts);   // already sorted by revenue, descending
   const [open, setOpen] = useState(null);
   const detail = clients.find((c) => c.name === open);
+
+  // Derived, not asserted. An earlier draft of the sentence below called this
+  // the fifth largest name; it is the third, and the table said so on screen.
+  const worst = clients.filter((c) => c.rag === 'crit')
+    .sort((a, b) => b.revenue - a.revenue)[0];
+  const worstRank = worst ? clients.findIndex((c) => c.name === worst.name) + 1 : 0;
+  const worstRedCells = worst
+    ? worst.cells.filter((cell) => cell && ragOf(healthOf(cell.wallet, cell.trend, 1)) === 'crit').length
+    : 0;
 
   return (
     <div className="bank-grid">
@@ -85,8 +96,11 @@ export default function BankRelationships({ facts, setSlicer }) {
 
         <p className="bank-note">
           <strong>Read:</strong> cells are wallet share with year on year movement beneath.
-          <strong> Blackwater Industrials</strong> is the fifth largest name in the book and
-          every one of its five cells is red, which a revenue ranking would never surface.
+          {worst && (
+            <> <strong>{worst.name}</strong> is the {ORDINALS[worstRank - 1] ?? `number ${worstRank}`}{' '}
+              largest name in the book and {worstRedCells} of its {worst.cells.length} cells are
+              red, which a revenue ranking would never surface.</>
+          )}{' '}
           Click any row to drill through.
         </p>
       </section>
