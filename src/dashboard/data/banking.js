@@ -187,7 +187,7 @@ export function byLob(facts) {
   return LOBS.map((lob) => {
     const rows = facts.filter((f) => f.lob === lob.id);
     if (!rows.length) {
-      return { ...lob, health: 0, rag: 'crit', clients: 0, live: 0, pending: 0, blocked: 0, overdue: 0, alerts: 0 };
+      return { ...lob, health: 0, rag: 'crit', clients: 0, good: 0, attention: 0, impaired: 0, live: 0, pending: 0, blocked: 0, overdue: 0, alerts: 0 };
     }
     const health = Math.round(rows.reduce((s, r) => s + r.health, 0) / rows.length);
     return {
@@ -195,6 +195,12 @@ export function byLob(facts) {
       health,
       rag: ragOf(health),
       clients: rows.length,
+      // The distribution, not just the mean. A line with ten clean files and two
+      // impaired ones averages the same as a line where every file is mediocre,
+      // and those are completely different problems.
+      good: rows.filter((r) => r.rag === 'ok').length,
+      attention: rows.filter((r) => r.rag === 'warn').length,
+      impaired: rows.filter((r) => r.rag === 'crit').length,
       live: rows.filter((r) => r.status === 'live').length,
       pending: rows.filter((r) => r.status === 'pending').length,
       blocked: rows.filter((r) => r.status === 'restricted' || r.status === 'review').length,

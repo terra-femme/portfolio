@@ -1,14 +1,10 @@
 import Lollipop from '../charts/Lollipop';
 import PetalGauge from '../charts/PetalGauge';
-import LineChart from '../charts/LineChart';
 import Donut from '../charts/Donut';
 import HBar from '../charts/HBar';
 import {
-  WORKSTREAMS, byLob, clientsIn, headline, FRANCHISE, FUNNEL, ALERT_MIX,
-  CASE_TREND, RAG_LABEL,
+  WORKSTREAMS, byLob, clientsIn, headline, FRANCHISE, FUNNEL, ALERT_MIX, RAG_LABEL,
 } from '../data/banking';
-
-const HEALTH_TARGET = 75; // the Good standing threshold, drawn on every lollipop
 
 function Tile({ icon, label, value, unit, delta, goodWhen = 'up', foot }) {
   const rising = delta >= 0;
@@ -32,21 +28,75 @@ function Tile({ icon, label, value, unit, delta, goodWhen = 'up', foot }) {
   );
 }
 
+/**
+ * One lollipop per line of business, showing how that line's relationships are
+ * distributed across good, needs attention and impaired.
+ *
+ * The dot takes the RAG colour of the band it measures, not the line's colour:
+ * the question this chart answers is "how many of my relationships are amber",
+ * so amber has to look amber. The line's own colour stays on the card header,
+ * the slicer pill and the matrix, where it identifies the line.
+ *
+ * A distribution rather than a mean, because the mean hides the shape. Ten clean
+ * files and two impaired ones average the same as twelve mediocre ones, and
+ * those are completely different mornings.
+ */
+function LobCard({ lob, selected, onSelect }) {
+  const bands = [
+    { id: 'ok', label: RAG_LABEL.ok, value: lob.good, color: 'var(--c-ok)' },
+    { id: 'warn', label: RAG_LABEL.warn, value: lob.attention, color: 'var(--c-warn)' },
+    { id: 'crit', label: RAG_LABEL.crit, value: lob.impaired, color: 'var(--c-crit)' },
+  ];
+
+  return (
+    <article className={selected ? 'lob-card is-on' : 'lob-card'}>
+      <button
+        type="button"
+        className="lob-card-head"
+        aria-pressed={selected}
+        onClick={() => onSelect(selected ? null : lob.id)}
+      >
+        <span className="lob-swatch" style={{ background: lob.color }} aria-hidden="true" />
+        <span className="lob-name">{lob.label}</span>
+        <span className={`rag-badge is-${lob.rag}`}>{lob.health}</span>
+      </button>
+
+      <Lollipop
+        rows={bands.map((b) => ({
+          id: b.id,
+          label: b.label,
+          value: b.value,
+          color: b.color,
+          detail: `${b.value} of ${lob.clients} files on ${lob.full}`,
+        }))}
+        max={lob.clients}
+        labelWidth={104}
+        rowHeight={34}
+        valueFormat={(v) => String(v)}
+      />
+
+      <ul className="lob-facts">
+        <li><span>Live</span><strong>{lob.live}</strong></li>
+        <li><span>Onboarding</span><strong>{lob.pending}</strong></li>
+        <li><span>Blocked</span><strong className={lob.blocked ? 'is-bad' : undefined}>{lob.blocked}</strong></li>
+        <li><span>Overdue</span><strong className={lob.overdue ? 'is-bad' : undefined}>{lob.overdue}</strong></li>
+      </ul>
+    </article>
+  );
+}
+
 export default function BankCoverage({ facts, slicers, setSlicer }) {
   const lobs = byLob(facts).filter((l) => l.clients > 0);
   const clients = clientsIn(facts);
   const h = headline(facts);
 
-  const worst = [...lobs].sort((a, b) => a.health - b.health)[0];
-  const best = [...lobs].sort((a, b) => b.health - a.health)[0];
+  // Not a superlative: four lines tie on impaired count, so naming one "the
+  // worst" would be false precision. The interesting fact is WHY they tie.
+  const impairedClients = clients.filter((c) => c.rag === 'crit');
+  const cleanLines = lobs.filter((l) => l.impaired === 0);
   const bookHealth = clients.length
     ? Math.round(clients.reduce((s, c) => s + c.health, 0) / clients.length)
     : 0;
-
-  const trendRows = CASE_TREND.labels.map((label, i) => ({
-    label,
-    values: WORKSTREAMS.map((w) => CASE_TREND.series[w.id][i]),
-  }));
 
   return (
     <div className="bank-grid">
@@ -85,35 +135,39 @@ export default function BankCoverage({ facts, slicers, setSlicer }) {
         />
       </div>
 
-      {/* The ask: one lollipop per line of business, because each line carries
-          its own book and its own onboarding queue, and they fail differently. */}
-      <section className="bank-card bank-span-8">
+      <section className="bank-card bank-span-12">
         <header className="bank-card-head">
           <div>
             <h2>Relationship health by line of business</h2>
-            <p>Mean file health: review currency, open alerts, documents, restrictions, outreach</p>
+            <p>Each line runs its own book and its own queue, so each gets its own chart</p>
           </div>
-          <span className="bank-chip">Target {HEALTH_TARGET}</span>
+          <span className="bank-legend-inline">
+            {['ok', 'warn', 'crit'].map((r) => (
+              <span key={r}><span className={`rag-dot is-${r}`} />{RAG_LABEL[r]}</span>
+            ))}
+          </span>
         </header>
 
-        <Lollipop
-          rows={lobs.map((l) => ({
-            id: l.id,
-            label: l.label,
-            value: l.health,
-            color: l.color,
-            target: HEALTH_TARGET,
-            detail: `${l.clients} files · ${l.live} live · ${l.pending} onboarding · ${l.blocked} blocked · ${l.overdue} overdue · ${l.alerts} alerts`,
-          }))}
-          selected={slicers.lob === 'All' ? null : slicers.lob}
-          onSelect={(id) => setSlicer('lob')(id ?? 'All')}
-        />
+        <div className="lob-cards">
+          {lobs.map((lob) => (
+            <LobCard
+              key={lob.id}
+              lob={lob}
+              selected={slicers.lob === lob.id}
+              onSelect={(id) => setSlicer('lob')(id ?? 'All')}
+            />
+          ))}
+        </div>
 
         <p className="bank-note">
-          <strong>Read:</strong> {best.label} leads at {best.health} and {worst.label} trails at{' '}
-          {worst.health}, carrying {worst.blocked} blocked {worst.blocked === 1 ? 'file' : 'files'} and{' '}
-          {worst.overdue} overdue {worst.overdue === 1 ? 'review' : 'reviews'}. Each line is coloured
-          separately because they share no queue. Click one to filter the report.
+          <strong>Read:</strong> every line except{' '}
+          {cleanLines.length ? cleanLines.map((l) => l.label).join(' and ') : 'none'} carries the
+          same impaired count, because it is the same{' '}
+          {impairedClients.length} {impairedClients.length === 1 ? 'name' : 'names'} on each of
+          them: {impairedClients.map((c) => c.name).join(' and ')}.
+          {cleanLines.length > 0 && ` ${cleanLines.map((l) => l.label).join(' and ')} is clear only because neither is onboarded to it.`}{' '}
+          A lapsed review blocks a client on every line at once, so these counts move together
+          rather than independently. Click any line to filter the report to it.
         </p>
       </section>
 
@@ -146,13 +200,12 @@ export default function BankCoverage({ facts, slicers, setSlicer }) {
         <header className="bank-card-head">
           <div>
             <h2>Onboarding funnel</h2>
-            <p>Open cases by stage, median days to reach it</p>
+            <p>Open cases by stage, franchise wide</p>
           </div>
         </header>
-        {/* One hue, not the line-of-business palette. Funnel stages are
-            SEQUENTIAL, and giving each its own categorical colour would imply
-            the stages are unrelated categories, which is the opposite of what a
-            funnel says. Lightness carries the ordering instead. */}
+        {/* One hue, not the line of business palette. Funnel stages are
+            SEQUENTIAL, and a categorical colour per stage would imply the stages
+            are unrelated. Lightness carries the ordering instead. */}
         <HBar
           rows={FUNNEL.map((f, i) => ({
             label: f.stage,
@@ -168,55 +221,45 @@ export default function BankCoverage({ facts, slicers, setSlicer }) {
         </p>
       </section>
 
-      <section className="bank-card bank-span-4">
+      <section className="bank-card bank-span-3">
         <header className="bank-card-head">
           <div>
-            <h2>Open screening alerts</h2>
-            <p>By alert type, franchise wide</p>
+            <h2>Open alerts</h2>
+            <p>By type</p>
           </div>
         </header>
         <Donut
           slices={ALERT_MIX}
-          centerLabel="Open alerts"
+          centerLabel="Open"
           valueFormat={(v) => String(v)}
-          size={158}
+          size={140}
+          legend={false}
         />
-      </section>
-
-      <section className="bank-card bank-span-3">
-        <header className="bank-card-head">
-          <div>
-            <h2>Scale</h2>
-            <p>Franchise, year to date</p>
-          </div>
-        </header>
-        <ul className="stat-list">
-          <li><span>Active clients</span><strong>{FRANCHISE.activeClients.toLocaleString('en-US')}</strong></li>
-          <li><span>Cases handled</span><strong>{FRANCHISE.casesYtd.toLocaleString('en-US')}</strong></li>
-          <li><span>Alerts screened</span><strong>{FRANCHISE.alertsScreenedYtd}M</strong></li>
-          <li><span>Docs outstanding</span><strong className="is-bad">{h.docsOutstanding}</strong></li>
+        <ul className="bank-legend">
+          {ALERT_MIX.map((a) => (
+            <li key={a.label}>
+              <span className="rag-dot" style={{ background: a.color }} />
+              <span>{a.label}</span>
+              <em>{a.value}</em>
+            </li>
+          ))}
         </ul>
       </section>
 
       <section className="bank-card bank-span-12">
         <header className="bank-card-head">
           <div>
-            <h2>Case volume by queue</h2>
-            <p>Trailing 12 months, open cases</p>
+            <h2>Scale</h2>
+            <p>Franchise, year to date. The named book above is the top {Math.round(FRANCHISE.namedShare * 100)}%</p>
           </div>
         </header>
-        <LineChart
-          rows={trendRows}
-          keys={WORKSTREAMS.map((w) => w.label)}
-          colors={['var(--t-1)', 'var(--t-4)', 'var(--c-crit)', 'var(--t-2)']}
-          height={220}
-          yFormat={(v) => String(Math.round(v))}
-        />
-        <p className="bank-note">
-          <strong>Read:</strong> emergency reviews are up 161% over the year while periodic
-          reviews fall. Unplanned work is displacing planned work, and that is the mechanism
-          that pushes files past their review date in the first place.
-        </p>
+        <ul className="stat-list is-row">
+          <li><span>Active clients</span><strong>{FRANCHISE.activeClients.toLocaleString('en-US')}</strong></li>
+          <li><span>Cases handled</span><strong>{FRANCHISE.casesYtd.toLocaleString('en-US')}</strong></li>
+          <li><span>Alerts screened</span><strong>{FRANCHISE.alertsScreenedYtd}M</strong></li>
+          <li><span>Docs outstanding</span><strong className="is-bad">{h.docsOutstanding}</strong></li>
+          <li><span>Repeat outreach</span><strong className={h.repeatOutreach ? 'is-bad' : undefined}>{h.repeatOutreach} files</strong></li>
+        </ul>
       </section>
     </div>
   );
