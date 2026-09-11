@@ -59,7 +59,7 @@ export default function BankRelationships({ facts, setSlicer }) {
                   <td>{c.region}</td>
                   <td>{c.tier}</td>
                   {c.cells.map((cell, i) => {
-                    if (!cell) return <td key={i} className="matrix-cell is-empty">–</td>;
+                    if (!cell) return <td key={i} className="matrix-cell is-empty">n/a</td>;
                     // Per cell, breadth is 1: this is one line, on its own.
                     const cellHealth = healthOf(cell.wallet, cell.trend, 1);
                     return (
