@@ -201,8 +201,8 @@ export default function DashboardPage() {
               >
                 <img
                   src={`${BASE}screenshots/tableau-ds-salaries.png`}
-                  width="1527"
-                  height="790"
+                  width="1537"
+                  height="809"
                   alt="Data Science Salaries (2026) dashboard: employment type, experience level and company size donuts, top ten employee residences, average salary by title and experience, a world map of average salary by country, and average salary in USD by employment type"
                   loading="lazy"
                 />

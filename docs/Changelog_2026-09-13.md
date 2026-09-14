@@ -108,7 +108,7 @@ Tableau serves, and cropping the iframe to the content rectangle would break
 the moment the dashboard is edited.
 
 ### Fix
-`public/screenshots/tableau-ds-salaries.png` (1527 x 790, the user's own
+`public/screenshots/tableau-ds-salaries.png` (1537 x 809, the user's own
 screenshot) is the stage, wrapped in a link to the live viz. The frame takes a
 new `is-image` modifier so its height follows the picture, no letterbox:
 
@@ -116,7 +116,7 @@ new `is-image` modifier so its height follows the picture, no letterbox:
 <div className="piece-frame is-light is-image">
   ...
   <a className="piece-stage piece-shot" href="https://public.tableau.com/views/ds_salaries_dashboard/Dashboard1" ...>
-    <img src={`${BASE}screenshots/tableau-ds-salaries.png`} width="1527" height="790" alt="..." loading="lazy" />
+    <img src={`${BASE}screenshots/tableau-ds-salaries.png`} width="1537" height="809" alt="..." loading="lazy" />
   </a>
 </div>
 ```
