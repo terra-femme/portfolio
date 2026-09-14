@@ -86,3 +86,72 @@ invisible viz with no error. The fit function warns and keeps the last scale.
   `dashboard.html#tableau` does not deep link. Pre-existing; `#coverage` is
   affected the same way.
 * Branch: `feat/tableau-embed`, worktree `.claude/worktrees/claude-2026-09-13-tableau`.
+
+---
+
+## Replace the live Tableau embed with a linked screenshot
+
+### Title
+After a rendered preview, the live embed was swapped for a tight screenshot of
+the dashboard that links out to the live viz on Tableau Public. Heading
+capitalised as "Data Science Salaries" to match the dashboard title.
+
+### Error / Issue
+The scaled live viz showed the whole 2100 x 1227 published canvas, and the
+dashboard content only occupies roughly the top left 1527 x 790 of it, so the
+frame showed dead cream space on the left and right of the charts.
+
+### Root Cause
+Dashboard content and dashboard canvas size are set separately in Tableau. The
+canvas was published larger than the content. The embed can only show what
+Tableau serves, and cropping the iframe to the content rectangle would break
+the moment the dashboard is edited.
+
+### Fix
+`public/screenshots/tableau-ds-salaries.png` (1527 x 790, the user's own
+screenshot) is the stage, wrapped in a link to the live viz. The frame takes a
+new `is-image` modifier so its height follows the picture, no letterbox:
+
+```jsx
+<div className="piece-frame is-light is-image">
+  ...
+  <a className="piece-stage piece-shot" href="https://public.tableau.com/views/ds_salaries_dashboard/Dashboard1" ...>
+    <img src={`${BASE}screenshots/tableau-ds-salaries.png`} width="1527" height="790" alt="..." loading="lazy" />
+  </a>
+</div>
+```
+
+```css
+.piece-frame.is-image { height: auto; }
+.piece-shot { display: block; flex: none; }
+.piece-shot img { display: block; width: 100%; height: auto; }
+```
+
+`TableauEmbed.jsx`, its educational companion and the `.piece-scale` CSS were
+removed rather than left as dead code. Commit `0e12f17` has them if a live
+embed is wanted again.
+
+### Education
+**A static image is a legitimate choice when the vendor's own layout is the
+problem.** The live embed was technically correct and visually worse. What the
+frame is for is a first impression; the live version is one click away.
+
+**Let the frame take the content's proportions.** The other pieces have a fixed
+frame height because they scroll inside it. A picture does not scroll, so a
+fixed height would force a letterbox or a crop. `height: auto` on the modifier
+and `width: 100%; height: auto` on the image make the frame exactly as tall as
+the picture at every viewport width.
+
+### Best Practices
+* If the live embed is ever wanted back, first fix the canvas in Tableau:
+  Dashboard > Size, either Automatic or a fixed size that matches the content,
+  then republish. The dead space is a Tableau setting, not a site problem.
+* Re-export the screenshot whenever the dashboard changes, same file name, so
+  nothing on the site needs editing.
+* `width` and `height` attributes on the image reserve its space before it
+  loads, so the page does not jump.
+
+### Notes
+* The original screenshot lives at `docs/Dashboard/Tableau_ds_screenshot.png`
+  in the main checkout, untracked. The copy under `public/screenshots/` is the
+  one the site serves.

@@ -5,9 +5,10 @@ import ScrambleNav from '../ScrambleNav';
 import { navLinks } from '../navLinks';
 import Dashboard from './Dashboard';
 import BankingDashboard from './BankingDashboard';
-import TableauEmbed from './TableauEmbed';
 
 const NAV_LINKS = navLinks('dashboard');
+// Public assets need the Vite base prefix, same as projects.js.
+const BASE = import.meta.env.BASE_URL;
 
 /**
  * The work page that hosts running pieces.
@@ -158,20 +159,23 @@ export default function DashboardPage() {
           <section className="section" id="tableau">
             <div className="section-head">
               <span className="idx">03</span>
-              <h2>Data science salaries</h2>
-              <span className="count">Tableau Public &middot; live viz in the frame</span>
+              <h2>Data Science Salaries</h2>
+              <span className="count">Tableau Public &middot; opens live in a new tab</span>
             </div>
 
             <p className="piece-lede">
-              Built in Tableau Desktop and published to Tableau Public. What sits in the
-              frame is the published viz itself, not a screenshot: filters, tooltips and
-              the Tableau toolbar all work here.
+              Built in Tableau Desktop and published to Tableau Public. Open it there for
+              the live version, where the Company Location and Job Title filters, the
+              tooltips and the Tableau toolbar all work.
             </p>
 
             {/* Tableau's canvas is white, so this frame takes the light skin too.
-                width/height are the size the dashboard was published at (the
-                snippet's minWidth/minHeight); the embed scales that to fit. */}
-            <div className="piece-frame is-light">
+                is-image: the frame's height follows the picture instead of the
+                fixed piece height, so there is no letterbox above or below it.
+                The live viz is published on a 2100 x 1227 canvas that the content
+                only part fills, so an embed showed dead space either side; a tight
+                screenshot linking out to the live viz reads better in the frame. */}
+            <div className="piece-frame is-light is-image">
               <div className="piece-chrome">
                 <span className="piece-dots" aria-hidden="true">
                   <span /><span /><span />
@@ -188,21 +192,27 @@ export default function DashboardPage() {
                 </a>
               </div>
 
-              <div className="piece-stage" data-lenis-prevent>
-                <TableauEmbed
-                  name="ds_salaries_dashboard/Dashboard1"
-                  poster="https://public.tableau.com/static/images/ds/ds_salaries_dashboard/Dashboard1/1.png"
-                  title="Data science salaries dashboard on Tableau Public"
-                  width={2100}
-                  height={1227}
+              <a
+                className="piece-stage piece-shot"
+                href="https://public.tableau.com/views/ds_salaries_dashboard/Dashboard1"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Data Science Salaries dashboard, opens live on Tableau Public"
+              >
+                <img
+                  src={`${BASE}screenshots/tableau-ds-salaries.png`}
+                  width="1527"
+                  height="790"
+                  alt="Data Science Salaries (2026) dashboard: employment type, experience level and company size donuts, top ten employee residences, average salary by title and experience, a world map of average salary by country, and average salary in USD by employment type"
+                  loading="lazy"
                 />
-              </div>
+              </a>
             </div>
 
             <div className="piece-caption">
               <span><strong>Source</strong> 607 salary records, 50 job titles, 50 company locations</span>
               <span><strong>Worksheets</strong> salary by title and experience, country map, employment type, company size</span>
-              <span><strong>Hosted</strong> Tableau Public, embedded live</span>
+              <span><strong>Hosted</strong> Tableau Public, live viz one click away</span>
             </div>
           </section>
 

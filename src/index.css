@@ -442,30 +442,13 @@ a { color: inherit; text-decoration: none; }
 
 .piece-stage { flex: 1; min-height: 0; position: relative; }
 
-/* A third party viz (Tableau Public) as the stage. The viz is rendered at the
-   size it was published at and scaled to fit, so a dashboard wider than the
-   frame is shrunk rather than clipped. The poster is the vendor's own static
-   render of the same view, drawn on top until the live viz has loaded, then
-   faded out; pointer events stay off so the fade never blocks a click. */
-.piece-scale { position: absolute; inset: 0; overflow: hidden; }
-.piece-scale-inner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform-origin: center center;
-}
-.piece-embed { display: block; border: 0; background: #ffffff; }
-.piece-poster {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top left;
-  pointer-events: none;
-  transition: opacity 0.5s;
-}
-.piece-poster.is-hidden { opacity: 0; }
+/* A still of a piece hosted elsewhere, linking out to the live version. The
+   frame drops its fixed height and takes the picture's own proportions, so the
+   picture is never letterboxed or cropped. width/height on the <img> reserve
+   the space before it loads. */
+.piece-frame.is-image { height: auto; }
+.piece-shot { display: block; flex: none; }
+.piece-shot img { display: block; width: 100%; height: auto; }
 
 .piece-caption {
   margin-top: 16px;
