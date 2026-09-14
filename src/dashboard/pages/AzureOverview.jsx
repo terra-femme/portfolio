@@ -40,12 +40,12 @@ export default function AzureOverview() {
 
       <div className="panel-grid">
         {/* Top-left, the position the reference dashboard puts its map in and
-            the first thing read on the page. Still span-4 so it stays a
-            supporting panel rather than the hero: it answers "where", which is
-            one question among several here. The KPI strip carries the numbers a
-            reader wants without hovering, and the bars below give the exact
-            ranking a bubble chart cannot. */}
-        <Panel span={4} title="Global footprint" subtitle="Traffic by Azure region">
+            the first thing read on the page. span-6 pairs it evenly with
+            Spend by service rather than the wider Daily spend chart below,
+            so the two panels closest in visual weight (a map+bars and a
+            donut, both mid-height) sit on the same row instead of one being
+            stretched against a much taller neighbour. */}
+        <Panel span={6} title="Global footprint" subtitle="Traffic by Azure region">
           {/* Slicer pills, the Power BI idiom: one control, every visual in the
               panel responds. */}
           <div className="pbi-slicer" role="group" aria-label="Filter by region">
@@ -95,8 +95,27 @@ export default function AzureOverview() {
           </Callout>
         </Panel>
 
+        <Panel span={6} title="Spend by service" subtitle="Last 30 days">
+          <Donut
+            slices={serviceMix}
+            centerLabel="Total spend"
+            valueFormat={(v) => fmtCurrency(v)}
+            size={172}
+          />
+          <Callout>
+            <strong>Observability is the largest line item</strong> at{' '}
+            {Math.round((observability.value / SPEND_30D) * 100)}%, ahead of every AI
+            service. Model inference is 12%.
+          </Callout>
+        </Panel>
+
+        {/* Full width rather than paired with a span-4 neighbour: at span-8
+            each of these already used most of a row, and now that they are
+            not propping up a span-4 panel alongside them, the line chart and
+            the three gauges both get to breathe rather than share a row for
+            its own sake. */}
         <Panel
-          span={8}
+          span={12}
           title="Daily spend"
           subtitle="Last 30 days, all subscriptions"
           hint={fmtCurrency(SPEND_30D)}
@@ -116,21 +135,7 @@ export default function AzureOverview() {
           </Callout>
         </Panel>
 
-        <Panel span={4} title="Spend by service" subtitle="Last 30 days">
-          <Donut
-            slices={serviceMix}
-            centerLabel="Total spend"
-            valueFormat={(v) => fmtCurrency(v)}
-            size={172}
-          />
-          <Callout>
-            <strong>Observability is the largest line item</strong> at{' '}
-            {Math.round((observability.value / SPEND_30D) * 100)}%, ahead of every AI
-            service. Model inference is 12%.
-          </Callout>
-        </Panel>
-
-        <Panel span={8} title="Service level objectives" subtitle="Rolling 30-day window">
+        <Panel span={12} title="Service level objectives" subtitle="Rolling 30-day window">
           <div className="gauge-row">
             {/* Sized up so three gauges genuinely fill the row height this panel
                 inherits from its taller neighbour, rather than floating in it. */}
