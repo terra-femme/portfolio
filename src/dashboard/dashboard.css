@@ -80,6 +80,18 @@
 /* Fills its container rather than the viewport. Standalone it is handed the
    viewport; embedded it is handed the frame's stage. The dashboard does not
    need to know which. */
+/* .dash-shell exists only to hold the container-size containment that
+   .dash's own responsive rules query. A CSS container query can't use the
+   element that establishes containment as its own query container -- .dash
+   querying its own width from inside an @container block matching .dash
+   would simply never match -- so the containment has to live one level up,
+   on a plain wrapper, even though visually it is a no-op box. */
+.dash-shell {
+  height: 100%;
+  container-type: inline-size;
+}
+:root[data-full] .dash-shell { height: 100dvh; }
+
 .dash {
   display: grid;
   grid-template-columns: var(--nav-w) 1fr;
@@ -992,12 +1004,17 @@
 
 /* ========================================================== responsive === */
 
-@media (max-width: 1240px) {
+/* Below, @container rather than @media: these query the width of .dash or
+   .bank themselves (both are `container-type: inline-size`), not the browser
+   viewport, so the layout responds correctly whether the report is shown
+   standalone (?full=1, where the two widths match) or embedded in the
+   portfolio's narrower .piece-frame. */
+@container (max-width: 1240px) {
   .span-4, .span-5 { grid-column: span 6; }
   .span-7, .span-8 { grid-column: span 12; }
 }
 
-@media (max-width: 900px) {
+@container (max-width: 900px) {
   /* Scoped like every other token: on :root this would leak out of the frame. */
   .dash { --nav-w: 0px; grid-template-columns: 1fr; }
 
@@ -1033,7 +1050,7 @@
   .span-4, .span-5, .span-7, .span-8, .span-12 { grid-column: 1 / -1; }
 }
 
-@media (max-width: 620px) {
+@container (max-width: 620px) {
   .kpi-row { grid-template-columns: 1fr; }
   .dash-status { display: none; }        /* the title needs the width more */
   .donut-wrap { justify-content: center; }
@@ -1159,7 +1176,7 @@
   font-weight: 500;
 }
 
-@media (max-width: 620px) {
+@container (max-width: 620px) {
   /* Marching dashes and a pulsing ring are a lot of motion on a small screen
      where the map is already tight; the static map still carries the data. */
   .map-flow { animation: none; }
@@ -1250,7 +1267,7 @@
 }
 .dash-intro strong { color: var(--ink); font-weight: 600; }
 
-@media (max-width: 620px) {
+@container (max-width: 620px) {
   .dash-intro { padding: 13px 15px; }
   .dash-intro p { font-size: 12.5px; }
 }
@@ -1304,6 +1321,9 @@
   --t-4: #63c9c0;
   --t-5: #6bbf73;
   --t-6: #b98fe0;
+  --t-7: #e8c76f;
+  --t-8: #f2a8b0;
+  --t-9: #b89880;
 
   --c-ok: #45d17f;
   --c-warn: #f2b544;
@@ -1318,6 +1338,10 @@
   color: var(--ink);
   font-family: var(--body);
   font-size: 14px;
+  /* Same reasoning as .dash: the responsive rules below query this box's own
+     width so they still fire correctly when it's narrower than the viewport,
+     inside the portfolio's .piece-frame. */
+  container-type: inline-size;
 }
 :root[data-full] .bank { height: 100dvh; }
 
@@ -1643,6 +1667,14 @@
   padding: 0 10px 8px;
 }
 .matrix thead th.is-right { text-align: right; }
+.matrix-umbrella-row th { padding-bottom: 2px; }
+.matrix-umbrella {
+  text-align: center !important;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--line);
+}
 .matrix-line { text-align: center !important; }
 .matrix-line button {
   border: 0; background: none; color: inherit; font: inherit;
@@ -1712,11 +1744,11 @@
 }
 .gantt-value { text-align: right; font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; }
 
-@media (max-width: 1100px) {
+@container (max-width: 1100px) {
   .bank-tiles { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .bank-span-4, .bank-span-6, .bank-span-8 { grid-column: 1 / -1; }
 }
-@media (max-width: 760px) {
+@container (max-width: 760px) {
   .bank-top { flex-wrap: wrap; }
   .bank-brand, .bank-sync { flex: 0 0 auto; }
   .bank-tabs { order: 3; width: 100%; overflow-x: auto; }
@@ -1746,12 +1778,15 @@
      and because the ten hues are spaced for maximum separation on white. One
      per line of business, fixed in the data so a line is the same colour in
      every visual on every page. */
-  --t-1: #4e79a7;   /* FIC       blue   */
-  --t-2: #f28e2b;   /* Markets   orange */
-  --t-3: #e15759;   /* spare     red    */
-  --t-4: #17a2a2;   /* GTB       teal   */
-  --t-5: #59a14f;   /* Lending   green  */
-  --t-6: #b07aa1;   /* Advisory  purple */
+  --t-1: #4e79a7;   /* FICC          blue   */
+  --t-2: #f28e2b;   /* Equities      orange */
+  --t-3: #e15759;   /* Restructuring red    */
+  --t-4: #17a2a2;   /* GTB           teal   */
+  --t-5: #59a14f;   /* Lending       green  */
+  --t-6: #b07aa1;   /* M&A           purple */
+  --t-7: #d4b106;   /* ECM           gold   */
+  --t-8: #d67a94;   /* DCM           pink   */
+  --t-9: #9c755f;   /* LevFin        brown  */
 
   --c-ok: #3f8f4a;
   --c-warn: #d98b1f;
@@ -1924,12 +1959,12 @@
 .bank .stat-list li { border-bottom-color: var(--line); }
 .bank .live-dot { background: var(--c-ok); }
 
-@media (max-width: 1100px) {
+@container (max-width: 1100px) {
   .queue-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .drill-split { grid-template-columns: 1fr; }
   .bank-span-3, .bank-span-5, .bank-span-7 { grid-column: 1 / -1; }
 }
-@media (max-width: 760px) {
+@container (max-width: 760px) {
   .queue-grid { grid-template-columns: 1fr; }
   .age-row { grid-template-columns: 120px 1fr 80px; }
 }
@@ -1998,14 +2033,39 @@
   overflow-wrap: anywhere;
 }
 
-/* ---- one card per line, all five on one row ---- */
-/* Fixed five columns rather than auto-fit: the ask was a single row with no
-   ragged gap at the end, and auto-fit would wrap the fifth card onto its own
-   line at awkward widths and leave four gaps beside it. Below 1000px they go
-   to a scrolling strip instead, which keeps the row intact. */
-.lob-cards {
+/* ---- one card per line, grouped by umbrella, all nine on one row ---- */
+/* Nine cards read as a flat list of tickers unless the umbrella that owns
+   each one is visible, which is the whole point of FICC and Equities no
+   longer being coordinate with Markets. Each group is its own fixed-column
+   grid sized to its own line count, and the groups sit in a row with
+   flex-grow proportional to that count, so every card still ends up the
+   same width as if it were one flat nine-column grid, just with a labelled
+   gap where the umbrella changes. Below 1300px the whole row scrolls as one
+   strip instead of wrapping. */
+.lob-groups {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+.lob-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  flex: var(--n) 1 0;
+}
+.lob-group + .lob-group { padding-left: 18px; border-left: 1px solid var(--line); }
+.lob-group-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding-left: 2px;
+}
+.lob-group-cards {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
   gap: 10px;
 }
 .lob-card {
@@ -2053,15 +2113,28 @@
 .lob-counts > span { display: inline-flex; align-items: center; gap: 5px; }
 .lob-sub { font-size: 10.5px; color: var(--ink-faint); }
 
-@media (max-width: 1000px) {
+@container (max-width: 1300px) {
   /* Keep the single row and let it scroll, rather than wrapping into a ragged
-     grid with a hole at the end. */
-  .lob-cards {
-    display: flex;
+     grid with a hole at the end. Groups collapse to a plain flex run inside
+     the scroll strip; the divider and label are enough separation once every
+     card is a fixed width anyway.
+
+     .lob-group must stop growing/shrinking here: it still carries
+     `flex: var(--n) 1 0; min-width: 0` from the wide-screen grid layout,
+     which lets the browser squeeze a group's box narrower than the
+     fixed-180px cards inside it actually need. Squeezed below their own
+     content, the cards overflow that shrunk box into the next group instead
+     of scrolling, which is what reads as overlap. Pinning the group to its
+     natural content width (flex: 0 0 auto, min-width restored) is what makes
+     .lob-groups' overflow-x: auto the thing that handles the extra width,
+     rather than the flexbox shrinking algorithm. */
+  .lob-group { flex: 0 0 auto; min-width: auto; }
+  .lob-groups {
     overflow-x: auto;
     scroll-snap-type: x proximity;
     padding-bottom: 4px;
     scrollbar-width: thin;
   }
+  .lob-group-cards { display: flex; }
   .lob-card { flex: 0 0 180px; scroll-snap-align: start; }
 }

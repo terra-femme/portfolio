@@ -123,115 +123,122 @@ export default function Dashboard({ embedded = false }) {
   }, [route.report, route.page]);
 
   return (
-    <div className={navOpen ? 'dash is-nav-open' : 'dash'}>
-      {/* ------------------------------------------------------- sidebar */}
-      <aside className="dash-nav" id="dash-nav">
-        <a className="dash-brand" href="./" aria-label="Back to Terra Femme portfolio">
-          <span className="brand-mark"><span>TERRA</span>FEMME</span>
-          <span className="brand-sub">Analytics</span>
-        </a>
+    // Wraps .dash so its own responsive rules (the sidebar collapse in
+    // particular) can query an ANCESTOR's width. A CSS container query can't
+    // use the element that establishes the container as its own query
+    // container -- .dash querying itself would just never match -- so the
+    // containment lives here instead, one level up.
+    <div className="dash-shell">
+      <div className={navOpen ? 'dash is-nav-open' : 'dash'}>
+        {/* ------------------------------------------------------- sidebar */}
+        <aside className="dash-nav" id="dash-nav">
+          <a className="dash-brand" href="./" aria-label="Back to Terra Femme portfolio">
+            <span className="brand-mark"><span>TERRA</span>FEMME</span>
+            <span className="brand-sub">Analytics</span>
+          </a>
 
-        <nav className="nav-groups" aria-label="Reports">
-          {REPORTS.map((r) => (
-            <div className="nav-group" key={r.id}>
-              <div className="nav-group-head">
-                <span className="nav-group-label">{r.label}</span>
-                <span className="nav-group-blurb">{r.blurb}</span>
+          <nav className="nav-groups" aria-label="Reports">
+            {REPORTS.map((r) => (
+              <div className="nav-group" key={r.id}>
+                <div className="nav-group-head">
+                  <span className="nav-group-label">{r.label}</span>
+                  <span className="nav-group-blurb">{r.blurb}</span>
+                </div>
+                <ul>
+                  {r.pages.map((p) => {
+                    const current = r.id === route.report && p.id === route.page;
+                    return (
+                      <li key={p.id}>
+                        <button
+                          type="button"
+                          className={current ? 'nav-item is-current' : 'nav-item'}
+                          aria-current={current ? 'page' : undefined}
+                          onClick={() => go(r.id, p.id)}
+                        >
+                          <span className="nav-icon">{p.icon}</span>
+                          {p.label}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
-              <ul>
-                {r.pages.map((p) => {
-                  const current = r.id === route.report && p.id === route.page;
-                  return (
-                    <li key={p.id}>
-                      <button
-                        type="button"
-                        className={current ? 'nav-item is-current' : 'nav-item'}
-                        aria-current={current ? 'page' : undefined}
-                        onClick={() => go(r.id, p.id)}
-                      >
-                        <span className="nav-icon">{p.icon}</span>
-                        {p.label}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
-        </nav>
+            ))}
+          </nav>
 
-        <div className="nav-foot">
-          <a className="nav-back" href="./">&larr; Back to portfolio</a>
-          <p className="nav-note">
-            Demonstration report. All figures are synthetic. No real customer, patient or
-            billing data appears anywhere in this dashboard.
-          </p>
-        </div>
-      </aside>
-
-      {/* Click-catcher behind the drawer on mobile. */}
-      <button
-        type="button"
-        className="nav-scrim"
-        aria-label="Close navigation"
-        tabIndex={navOpen ? 0 : -1}
-        onClick={() => setNavOpen(false)}
-      />
-
-      {/* ---------------------------------------------------------- main */}
-      <div className="dash-main" ref={mainRef}>
-        <header className="dash-top">
-          <button
-            type="button"
-            className="nav-toggle"
-            aria-expanded={navOpen}
-            aria-controls="dash-nav"
-            onClick={() => setNavOpen((v) => !v)}
-          >
-            <span /><span /><span />
-            <em className="sr-only">Toggle navigation</em>
-          </button>
-
-          <div className="dash-title">
-            <span className="crumb">{report.label}</span>
-            <h1>{page.title}</h1>
-            <p>{page.sub}</p>
-          </div>
-
-          <div className="dash-status">
-            <span className="live-dot" aria-hidden="true" />
-            <span className="status-text">
-              <strong>{report.syncLabel}</strong>
-              <em>{elapsed}</em>
-            </span>
-          </div>
-        </header>
-
-        {/* The framed view puts this copy on the page around the frame, so
-            rendering it again inside would duplicate it on all six pages. The
-            standalone (?full=1) view has no page around it, so it keeps it.
-            Sits outside the keyed <main> below so it does not replay its
-            entrance animation on every page change. */}
-        {!embedded && (
-          <section className="dash-intro">
-            <p>
-              As an <strong>Azure AI Engineer</strong>, working closely with M365 and the
-              <strong> Power Platform</strong> is inevitable and my skills with{' '}
-              <strong>Power BI</strong> and data visualisation are constantly being refined.
+          <div className="nav-foot">
+            <a className="nav-back" href="./">&larr; Back to portfolio</a>
+            <p className="nav-note">
+              Demonstration report. All figures are synthetic. No real customer, patient or
+              billing data appears anywhere in this dashboard.
             </p>
-          </section>
-        )}
+          </div>
+        </aside>
 
-        {/* key forces a remount on navigation so every counter and chart
-            replays its entrance animation instead of silently swapping data */}
-        <main className="dash-canvas" key={`${route.report}/${route.page}`}>
-          <PageComponent />
-        </main>
+        {/* Click-catcher behind the drawer on mobile. */}
+        <button
+          type="button"
+          className="nav-scrim"
+          aria-label="Close navigation"
+          tabIndex={navOpen ? 0 : -1}
+          onClick={() => setNavOpen(false)}
+        />
 
-        <footer className="dash-foot">
-          <span>&copy; 2026 Terra Femme Tech LLC</span>
-          <span>Synthetic data · Hand-built SVG charts · No BI vendor runtime</span>
-        </footer>
+        {/* ---------------------------------------------------------- main */}
+        <div className="dash-main" ref={mainRef}>
+          <header className="dash-top">
+            <button
+              type="button"
+              className="nav-toggle"
+              aria-expanded={navOpen}
+              aria-controls="dash-nav"
+              onClick={() => setNavOpen((v) => !v)}
+            >
+              <span /><span /><span />
+              <em className="sr-only">Toggle navigation</em>
+            </button>
+
+            <div className="dash-title">
+              <span className="crumb">{report.label}</span>
+              <h1>{page.title}</h1>
+              <p>{page.sub}</p>
+            </div>
+
+            <div className="dash-status">
+              <span className="live-dot" aria-hidden="true" />
+              <span className="status-text">
+                <strong>{report.syncLabel}</strong>
+                <em>{elapsed}</em>
+              </span>
+            </div>
+          </header>
+
+          {/* The framed view puts this copy on the page around the frame, so
+              rendering it again inside would duplicate it on all six pages. The
+              standalone (?full=1) view has no page around it, so it keeps it.
+              Sits outside the keyed <main> below so it does not replay its
+              entrance animation on every page change. */}
+          {!embedded && (
+            <section className="dash-intro">
+              <p>
+                As an <strong>Azure AI Engineer</strong>, working closely with M365 and the
+                <strong> Power Platform</strong> is inevitable and my skills with{' '}
+                <strong>Power BI</strong> and data visualisation are constantly being refined.
+              </p>
+            </section>
+          )}
+
+          {/* key forces a remount on navigation so every counter and chart
+              replays its entrance animation instead of silently swapping data */}
+          <main className="dash-canvas" key={`${route.report}/${route.page}`}>
+            <PageComponent />
+          </main>
+
+          <footer className="dash-foot">
+            <span>&copy; 2026 Terra Femme Tech LLC</span>
+            <span>Synthetic data · Hand-built SVG charts · No BI vendor runtime</span>
+          </footer>
+        </div>
       </div>
     </div>
   );

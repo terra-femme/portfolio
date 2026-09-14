@@ -19,14 +19,53 @@
 
 export const LAST_REFRESH = '2026-09-11T06:10:00Z';
 
-/** The lines that onboard and maintain clients. */
-export const LOBS = [
-  { id: 'fic', label: 'FIC', full: 'Fixed income, currencies and commodities', color: 'var(--t-1)' },
-  { id: 'mkt', label: 'Markets', full: 'Equities and markets', color: 'var(--t-2)' },
-  { id: 'gtb', label: 'GTB', full: 'Global transaction banking', color: 'var(--t-4)' },
-  { id: 'adv', label: 'Advisory', full: 'M&A, ECM and DCM', color: 'var(--t-6)' },
-  { id: 'lend', label: 'Lending', full: 'Corporate lending', color: 'var(--t-5)' },
+/** The umbrella each line of business sits under, for grouped headers and legends. */
+export const UMBRELLAS = [
+  { id: 'markets', label: 'Markets', full: 'Sales and trading: FICC and Equities' },
+  { id: 'ibd', label: 'IBD', full: 'Investment Banking Division: sell-side deal advisory' },
+  { id: 'gtb', label: 'GTB', full: 'Global transaction banking' },
+  { id: 'lending', label: 'Lending', full: 'Corporate lending' },
 ];
+
+/**
+ * The lines that onboard and maintain clients.
+ *
+ * FIC and Markets used to sit here as two flat, coordinate entries, which is
+ * backwards: at a real bank, Markets is the umbrella and FICC and Equities are
+ * the two sales-and-trading businesses inside it. Advisory had the matching
+ * problem the other way, one flat line standing in for everything IBD does.
+ * Every line now carries the umbrella it actually reports into, so a line's
+ * name never implies it contains a sibling it does not.
+ */
+export const LOBS = [
+  { id: 'ficc', umbrella: 'markets', label: 'FICC', full: 'Fixed income, currencies and commodities', color: 'var(--t-1)' },
+  { id: 'eq', umbrella: 'markets', label: 'Equities', full: 'Cash equities, equity derivatives and prime brokerage', color: 'var(--t-2)' },
+  { id: 'gtb', umbrella: 'gtb', label: 'GTB', full: 'Global transaction banking', color: 'var(--t-4)' },
+  { id: 'manda', umbrella: 'ibd', label: 'M&A', full: 'Mergers and acquisitions advisory', color: 'var(--t-6)' },
+  { id: 'ecm', umbrella: 'ibd', label: 'ECM', full: 'Equity capital markets: IPOs, follow-ons and convertibles', color: 'var(--t-7)' },
+  { id: 'dcm', umbrella: 'ibd', label: 'DCM', full: 'Debt capital markets: investment-grade issuance', color: 'var(--t-8)' },
+  { id: 'levfin', umbrella: 'ibd', label: 'LevFin', full: 'Leveraged finance: sponsor and high-yield financing', color: 'var(--t-9)' },
+  { id: 'restr', umbrella: 'ibd', label: 'Restructuring', full: 'Distressed advisory and liability management', color: 'var(--t-3)' },
+  { id: 'lend', umbrella: 'lending', label: 'Lending', full: 'Corporate lending', color: 'var(--t-5)' },
+];
+
+/**
+ * Any list of LOBS (or of the byLob() rows, which carry the same id/umbrella),
+ * collapsed into runs of consecutive same-umbrella entries. LOBS is already
+ * ordered by umbrella, so this is a grouping, not a sort, and it is the one
+ * place "which lines share an umbrella" gets computed, so the matrix header,
+ * the line-of-business cards and the slicer group the same way from the same
+ * fact rather than three components agreeing by coincidence.
+ */
+export function groupByUmbrella(lobs) {
+  const groups = [];
+  for (const l of lobs) {
+    const last = groups[groups.length - 1];
+    if (last && last.umbrella === l.umbrella) last.lobs.push(l);
+    else groups.push({ umbrella: l.umbrella, lobs: [l] });
+  }
+  return groups;
+}
 
 export const REGIONS = ['AMER', 'EMEA', 'APAC'];
 export const RISK_RATINGS = ['High', 'Medium', 'Low'];
@@ -63,22 +102,22 @@ export const STATUS = {
  * relationship is lost before it ever opens.
  */
 const CLIENTS = [
-  { name: 'Meridian Capital Partners', region: 'AMER', risk: 'Low', kycDueDays: 212, docs: 0, outreach: 0, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'live', gtb: 'live', adv: 'live', lend: 'live' } },
-  { name: 'Kestrel Asset Management', region: 'EMEA', risk: 'Low', kycDueDays: 168, docs: 0, outreach: 1, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'live', gtb: 'live', adv: 'none', lend: 'live' } },
-  { name: 'Orion Sovereign Fund', region: 'APAC', risk: 'High', kycDueDays: 34, docs: 1, outreach: 2, onboardingDays: null, alerts: [{ type: 'PEP', severity: 'Medium', ageDays: 4 }], lobs: { fic: 'live', mkt: 'live', gtb: 'live', adv: 'pending', lend: 'live' } },
-  { name: 'Northgate Pension Trust', region: 'EMEA', risk: 'Low', kycDueDays: 96, docs: 0, outreach: 0, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'live', gtb: 'live', adv: 'none', lend: 'live' } },
-  { name: 'Blackwater Industrials', region: 'AMER', risk: 'High', kycDueDays: 58, docs: 9, outreach: 7, onboardingDays: 118, alerts: [{ type: 'Adverse media', severity: 'Medium', ageDays: 22 }], lobs: { fic: 'pending', mkt: 'pending', gtb: 'pending', adv: 'none', lend: 'pending' } },
-  { name: 'Helvetia Reinsurance', region: 'EMEA', risk: 'Medium', kycDueDays: 121, docs: 0, outreach: 1, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'live', gtb: 'live', adv: 'none', lend: 'live' } },
-  { name: 'Pacific Rim Logistics', region: 'APAC', risk: 'Medium', kycDueDays: 27, docs: 2, outreach: 2, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'none', gtb: 'live', adv: 'pending', lend: 'live' } },
-  { name: 'Cordillera Mining', region: 'AMER', risk: 'High', kycDueDays: -46, docs: 6, outreach: 5, onboardingDays: null, alerts: [{ type: 'Sanctions', severity: 'High', ageDays: 17 }, { type: 'Adverse media', severity: 'Medium', ageDays: 31 }], lobs: { fic: 'restricted', mkt: 'restricted', gtb: 'review', adv: 'none', lend: 'restricted' } },
-  { name: 'Tiber Insurance Group', region: 'EMEA', risk: 'Low', kycDueDays: 143, docs: 0, outreach: 0, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'live', gtb: 'live', adv: 'none', lend: 'none' } },
-  { name: 'Solent Energy Group', region: 'EMEA', risk: 'Medium', kycDueDays: -12, docs: 3, outreach: 3, onboardingDays: null, alerts: [{ type: 'Adverse media', severity: 'Medium', ageDays: 9 }], lobs: { fic: 'live', mkt: 'live', gtb: 'review', adv: 'pending', lend: 'live' } },
-  { name: 'Hanseatic Shipping', region: 'EMEA', risk: 'High', kycDueDays: 19, docs: 4, outreach: 4, onboardingDays: null, alerts: [{ type: 'Sanctions', severity: 'Medium', ageDays: 6 }], lobs: { fic: 'live', mkt: 'none', gtb: 'review', adv: 'none', lend: 'live' } },
-  { name: 'Cobalt Pharma Group', region: 'AMER', risk: 'Medium', kycDueDays: 88, docs: 1, outreach: 1, onboardingDays: 31, alerts: [], lobs: { fic: 'pending', mkt: 'live', gtb: 'live', adv: 'live', lend: 'none' } },
-  { name: 'Vantage Point Holdings', region: 'AMER', risk: 'Low', kycDueDays: 64, docs: 0, outreach: 0, onboardingDays: null, alerts: [], lobs: { fic: 'live', mkt: 'live', gtb: 'none', adv: 'none', lend: 'live' } },
-  { name: 'Ardent Infrastructure', region: 'APAC', risk: 'Medium', kycDueDays: 8, docs: 3, outreach: 3, onboardingDays: null, alerts: [{ type: 'PEP', severity: 'Medium', ageDays: 12 }], lobs: { fic: 'live', mkt: 'none', gtb: 'live', adv: 'pending', lend: 'review' } },
-  { name: 'Silverbirch Retail', region: 'AMER', risk: 'High', kycDueDays: -73, docs: 8, outreach: 6, onboardingDays: null, alerts: [{ type: 'Ownership change', severity: 'High', ageDays: 28 }], lobs: { fic: 'restricted', mkt: 'restricted', gtb: 'restricted', adv: 'none', lend: 'review' } },
-  { name: 'Aurelian Global Advisors', region: 'APAC', risk: 'Low', kycDueDays: 174, docs: 0, outreach: 1, onboardingDays: 22, alerts: [], lobs: { fic: 'pending', mkt: 'live', gtb: 'pending', adv: 'live', lend: 'none' } },
+  { name: 'Meridian Capital Partners', region: 'AMER', risk: 'Low', kycDueDays: 212, docs: 0, outreach: 0, onboardingDays: null, alerts: [], lobs: { ficc: 'live', eq: 'live', gtb: 'live', manda: 'live', ecm: 'none', dcm: 'live', levfin: 'none', restr: 'none', lend: 'live' } },
+  { name: 'Kestrel Asset Management', region: 'EMEA', risk: 'Low', kycDueDays: 168, docs: 0, outreach: 1, onboardingDays: null, alerts: [], lobs: { ficc: 'live', eq: 'live', gtb: 'live', manda: 'none', ecm: 'none', dcm: 'none', levfin: 'none', restr: 'none', lend: 'live' } },
+  { name: 'Orion Sovereign Fund', region: 'APAC', risk: 'High', kycDueDays: 34, docs: 1, outreach: 2, onboardingDays: null, alerts: [{ type: 'PEP', severity: 'Medium', ageDays: 4 }], lobs: { ficc: 'live', eq: 'live', gtb: 'live', manda: 'none', ecm: 'none', dcm: 'pending', levfin: 'none', restr: 'none', lend: 'live' } },
+  { name: 'Northgate Pension Trust', region: 'EMEA', risk: 'Low', kycDueDays: 96, docs: 0, outreach: 0, onboardingDays: null, alerts: [], lobs: { ficc: 'live', eq: 'live', gtb: 'live', manda: 'none', ecm: 'none', dcm: 'none', levfin: 'none', restr: 'none', lend: 'live' } },
+  { name: 'Blackwater Industrials', region: 'AMER', risk: 'High', kycDueDays: 58, docs: 9, outreach: 7, onboardingDays: 118, alerts: [{ type: 'Adverse media', severity: 'Medium', ageDays: 22 }], lobs: { ficc: 'pending', eq: 'pending', gtb: 'pending', manda: 'none', ecm: 'none', dcm: 'none', levfin: 'none', restr: 'none', lend: 'pending' } },
+  { name: 'Helvetia Reinsurance', region: 'EMEA', risk: 'Medium', kycDueDays: 121, docs: 0, outreach: 1, onboardingDays: null, alerts: [], lobs: { ficc: 'live', eq: 'live', gtb: 'live', manda: 'none', ecm: 'none', dcm: 'none', levfin: 'none', restr: 'none', lend: 'live' } },
+  { name: 'Pacific Rim Logistics', region: 'APAC', risk: 'Medium', kycDueDays: 27, docs: 2, outreach: 2, onboardingDays: null, alerts: [], lobs: { ficc: 'live', eq: 'none', gtb: 'live', manda: 'pending', ecm: 'none', dcm: 'none', levfin: 'none', restr: 'none', lend: 'live' } },
+  { name: 'Cordillera Mining', region: 'AMER', risk: 'High', kycDueDays: -46, docs: 6, outreach: 5, onboardingDays: null, alerts: [{ type: 'Sanctions', severity: 'High', ageDays: 17 }, { type: 'Adverse media', severity: 'Medium', ageDays: 31 }], lobs: { ficc: 'restricted', eq: 'restricted', gtb: 'review', manda: 'none', ecm: 'none', dcm: 'none', levfin: 'none', restr: 'none', lend: 'restricted' } },
+  { name: 'Tiber Insurance Group', region: 'EMEA', risk: 'Low', kycDueDays: 143, docs: 0, outreach: 0, onboardingDays: null, alerts: [], lobs: { ficc: 'live', eq: 'live', gtb: 'live', manda: 'none', ecm: 'none', dcm: 'none', levfin: 'none', restr: 'none', lend: 'none' } },
+  { name: 'Solent Energy Group', region: 'EMEA', risk: 'Medium', kycDueDays: -12, docs: 3, outreach: 3, onboardingDays: null, alerts: [{ type: 'Adverse media', severity: 'Medium', ageDays: 9 }], lobs: { ficc: 'live', eq: 'live', gtb: 'review', manda: 'none', ecm: 'none', dcm: 'pending', levfin: 'none', restr: 'none', lend: 'live' } },
+  { name: 'Hanseatic Shipping', region: 'EMEA', risk: 'High', kycDueDays: 19, docs: 4, outreach: 4, onboardingDays: null, alerts: [{ type: 'Sanctions', severity: 'Medium', ageDays: 6 }], lobs: { ficc: 'live', eq: 'none', gtb: 'review', manda: 'none', ecm: 'none', dcm: 'none', levfin: 'none', restr: 'none', lend: 'live' } },
+  { name: 'Cobalt Pharma Group', region: 'AMER', risk: 'Medium', kycDueDays: 88, docs: 1, outreach: 1, onboardingDays: 31, alerts: [], lobs: { ficc: 'pending', eq: 'live', gtb: 'live', manda: 'none', ecm: 'live', dcm: 'none', levfin: 'none', restr: 'none', lend: 'none' } },
+  { name: 'Vantage Point Holdings', region: 'AMER', risk: 'Low', kycDueDays: 64, docs: 0, outreach: 0, onboardingDays: null, alerts: [], lobs: { ficc: 'live', eq: 'live', gtb: 'none', manda: 'none', ecm: 'none', dcm: 'none', levfin: 'none', restr: 'none', lend: 'live' } },
+  { name: 'Ardent Infrastructure', region: 'APAC', risk: 'Medium', kycDueDays: 8, docs: 3, outreach: 3, onboardingDays: null, alerts: [{ type: 'PEP', severity: 'Medium', ageDays: 12 }], lobs: { ficc: 'live', eq: 'none', gtb: 'live', manda: 'none', ecm: 'none', dcm: 'none', levfin: 'pending', restr: 'none', lend: 'review' } },
+  { name: 'Silverbirch Retail', region: 'AMER', risk: 'High', kycDueDays: -73, docs: 8, outreach: 6, onboardingDays: null, alerts: [{ type: 'Ownership change', severity: 'High', ageDays: 28 }], lobs: { ficc: 'restricted', eq: 'restricted', gtb: 'restricted', manda: 'none', ecm: 'none', dcm: 'none', levfin: 'none', restr: 'review', lend: 'review' } },
+  { name: 'Aurelian Global Advisors', region: 'APAC', risk: 'Low', kycDueDays: 174, docs: 0, outreach: 1, onboardingDays: 22, alerts: [], lobs: { ficc: 'pending', eq: 'live', gtb: 'pending', manda: 'live', ecm: 'none', dcm: 'none', levfin: 'none', restr: 'none', lend: 'none' } },
 ];
 
 /**
