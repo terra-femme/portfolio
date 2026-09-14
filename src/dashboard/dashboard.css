@@ -250,7 +250,7 @@
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 20px clamp(18px, 3vw, 34px);
+  padding: 20px clamp(18px, 3cqw, 34px);
   background: color-mix(in oklab, var(--bg) 82%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
@@ -265,7 +265,7 @@
 }
 .dash-title h1 {
   font-family: var(--display);
-  font-size: clamp(19px, 2.4vw, 25px);
+  font-size: clamp(19px, 2.4cqw, 25px);
   font-weight: 600;
   letter-spacing: -0.02em;
   margin-top: 3px;
@@ -318,14 +318,14 @@
 
 /* ============================================================== canvas === */
 
-.dash-canvas { padding: clamp(18px, 3vw, 30px); flex: 1; }
+.dash-canvas { padding: clamp(18px, 3cqw, 30px); flex: 1; }
 
 .dash-foot {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  padding: 20px clamp(18px, 3vw, 34px) 28px;
+  padding: 20px clamp(18px, 3cqw, 34px) 28px;
   border-top: 1px solid var(--line);
   font-size: 11.5px;
   color: var(--ink-faint);
@@ -335,7 +335,13 @@
 
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* auto-fit + a real minimum rather than a fixed 4 columns plus manual
+     step-downs: a fixed column count has no floor on how narrow a card can
+     get before the breakpoint that would reduce it finally fires, and
+     "$22,278" at this row's max 34px font needs a little over 200px of card
+     width to not get clipped by .kpi's overflow:hidden. 220px keeps that
+     margin at every width instead of only at the widths someone tested. */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
   margin-bottom: 18px;
 }
@@ -366,7 +372,7 @@
   display: block;
   margin-top: 9px;
   font-family: var(--display);
-  font-size: clamp(26px, 3.4vw, 34px);
+  font-size: clamp(26px, 3.4cqw, 34px);
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -640,7 +646,7 @@
      panel gives every column ~100px, and a square cell would then be 100px
      tall, turning a compact grid into a wall. Height is decoupled from column
      count so the map stays compact whether it has 12 columns or 24. */
-  height: clamp(16px, 2.6vw, 32px);
+  height: clamp(16px, 2.6cqw, 32px);
   border-radius: 3px;
   cursor: crosshair;
   transition: transform 0.12s, outline-color 0.12s;
@@ -1046,12 +1052,11 @@
 
   .nav-toggle { display: flex; }
 
-  .kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* .kpi-row no longer needs a step here: auto-fit reflows it on its own. */
   .span-4, .span-5, .span-7, .span-8, .span-12 { grid-column: 1 / -1; }
 }
 
 @container (max-width: 620px) {
-  .kpi-row { grid-template-columns: 1fr; }
   .dash-status { display: none; }        /* the title needs the width more */
   .donut-wrap { justify-content: center; }
   .hbar-row { grid-template-columns: minmax(70px, 40%) 1fr auto; }
@@ -1246,7 +1251,7 @@
    border-inline-start rather than border-left: the accent stays on the leading
    edge if this is ever rendered right-to-left. */
 .dash-intro {
-  margin: clamp(18px, 3vw, 30px) clamp(18px, 3vw, 30px) 0;
+  margin: clamp(18px, 3cqw, 30px) clamp(18px, 3cqw, 30px) 0;
   padding: 15px 19px;
   border: 1px solid var(--line);
   border-inline-start: 2px solid var(--c-1);
@@ -1351,7 +1356,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 12px clamp(14px, 2.2vw, 24px);
+  padding: 12px clamp(14px, 2.2cqw, 24px);
   background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
@@ -1420,7 +1425,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: clamp(14px, 2.2vw, 24px);
+  padding: clamp(14px, 2.2cqw, 24px);
   scrollbar-width: thin;
   scrollbar-color: var(--surface-3) transparent;
 }
@@ -1435,7 +1440,7 @@
 }
 .bank-titlerow h1 {
   font-family: var(--display);
-  font-size: clamp(17px, 2.2vw, 22px);
+  font-size: clamp(17px, 2.2cqw, 22px);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -1514,7 +1519,10 @@
 .bank-tiles {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0,1fr));
+  /* auto-fit + a floor width, same reasoning as .kpi-row: a fixed column
+     count plus manual step-downs leaves a zone where the breakpoint hasn't
+     fired yet but the cards are already too narrow for their content. */
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
 }
 .bank-tile {
@@ -1540,7 +1548,7 @@
   gap: 9px;
   flex-wrap: wrap;
   font-family: var(--display);
-  font-size: clamp(24px, 3vw, 31px);
+  font-size: clamp(24px, 3cqw, 31px);
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -1745,14 +1753,12 @@
 .gantt-value { text-align: right; font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; }
 
 @container (max-width: 1100px) {
-  .bank-tiles { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .bank-span-4, .bank-span-6, .bank-span-8 { grid-column: 1 / -1; }
 }
 @container (max-width: 760px) {
   .bank-top { flex-wrap: wrap; }
   .bank-brand, .bank-sync { flex: 0 0 auto; }
   .bank-tabs { order: 3; width: 100%; overflow-x: auto; }
-  .bank-tiles { grid-template-columns: 1fr; }
   .gantt-row { grid-template-columns: 130px 1fr 56px; }
   .gantt-axis { margin-left: 140px; margin-right: 64px; }
 }

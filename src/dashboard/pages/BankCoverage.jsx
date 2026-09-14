@@ -4,7 +4,15 @@ import Donut from '../charts/Donut';
 import HBar from '../charts/HBar';
 import {
   WORKSTREAMS, byLob, clientsIn, headline, FRANCHISE, FUNNEL, ALERT_MIX, RAG_LABEL,
+  UMBRELLAS, groupByUmbrella,
 } from '../data/banking';
+
+/** "A", "A and B", or "A, B and C": grammatical whether one line ties or four do. */
+function listJoin(items) {
+  if (items.length <= 1) return items[0] ?? '';
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+}
 
 function Tile({ icon, label, value, unit, delta, goodWhen = 'up', foot }) {
   const rising = delta >= 0;
@@ -149,25 +157,37 @@ export default function BankCoverage({ facts, slicers, setSlicer }) {
           </span>
         </header>
 
-        <div className="lob-cards">
-          {lobs.map((lob) => (
-            <LobCard
-              key={lob.id}
-              lob={lob}
-              scaleMax={scaleMax}
-              selected={slicers.lob === lob.id}
-              onSelect={(id) => setSlicer('lob')(id ?? 'All')}
-            />
-          ))}
+        <div className="lob-groups">
+          {groupByUmbrella(lobs).map((g) => {
+            const u = UMBRELLAS.find((um) => um.id === g.umbrella);
+            return (
+              <div key={g.umbrella} className="lob-group" style={{ '--n': g.lobs.length }}>
+                <span className="lob-group-label" title={u?.full}>
+                  {u?.label}
+                </span>
+                <div className="lob-group-cards">
+                  {g.lobs.map((lob) => (
+                    <LobCard
+                      key={lob.id}
+                      lob={lob}
+                      scaleMax={scaleMax}
+                      selected={slicers.lob === lob.id}
+                      onSelect={(id) => setSlicer('lob')(id ?? 'All')}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         <p className="bank-note">
           <strong>Read:</strong> every line except{' '}
-          {cleanLines.length ? cleanLines.map((l) => l.label).join(' and ') : 'none'} carries the
+          {cleanLines.length ? listJoin(cleanLines.map((l) => l.label)) : 'none'} carries the
           same impaired count, because it is the same{' '}
           {impairedClients.length} {impairedClients.length === 1 ? 'name' : 'names'} on each of
-          them: {impairedClients.map((c) => c.name).join(' and ')}.
-          {cleanLines.length > 0 && ` ${cleanLines.map((l) => l.label).join(' and ')} is clear only because neither is onboarded to it.`}{' '}
+          them: {listJoin(impairedClients.map((c) => c.name))}.
+          {cleanLines.length > 0 && ` ${listJoin(cleanLines.map((l) => l.label))} ${cleanLines.length === 1 ? 'is' : 'are'} clear only because neither is onboarded to ${cleanLines.length === 1 ? 'it' : 'them'}.`}{' '}
           A lapsed review blocks a client on every line at once, so these counts move together
           rather than independently. Click any line to filter the report to it.
         </p>
@@ -257,8 +277,8 @@ export default function BankCoverage({ facts, slicers, setSlicer }) {
         </header>
         <ul className="stat-list is-row">
           <li><span>Active clients</span><strong>{FRANCHISE.activeClients.toLocaleString('en-US')}</strong></li>
-          <li><span>Cases handled</span><strong>{FRANCHISE.casesYtd.toLocaleString('en-US')}</strong></li>
-          <li><span>Alerts screened</span><strong>{FRANCHISE.alertsScreenedYtd}M</strong></li>
+          <li><span>Cases processed</span><strong>{FRANCHISE.casesYtd.toLocaleString('en-US')}</strong></li>
+          <li><span>Alerts generated</span><strong>{FRANCHISE.alertsScreenedYtd}M</strong></li>
           <li><span>Docs outstanding</span><strong className="is-bad">{h.docsOutstanding}</strong></li>
           <li><span>Repeat outreach</span><strong className={h.repeatOutreach ? 'is-bad' : undefined}>{h.repeatOutreach} files</strong></li>
         </ul>

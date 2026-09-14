@@ -132,7 +132,7 @@ export default function BankPipeline({ facts }) {
         />
         <p className="bank-note">
           <strong>Read:</strong> each line is a separate colour throughout this report because
-          each line runs its own onboarding queue. A file blocked on FIC is not blocked on GTB,
+          each line runs its own onboarding queue. A file blocked on FICC is not blocked on GTB,
           and the two teams clear them independently.
         </p>
       </section>

@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import Lollipop from '../charts/Lollipop';
-import { LOBS, STATUS, clientsIn, RAG_LABEL } from '../data/banking';
+import {
+  LOBS, UMBRELLAS, STATUS, clientsIn, RAG_LABEL, groupByUmbrella,
+} from '../data/banking';
 
 /**
  * The client book: every named file against every line of business.
  *
  * The cell is the file's STATUS on that line, not a number, because that is the
- * question the desk actually asks. "Can I trade this client on FIC today" has a
- * categorical answer, and forcing it into a number would invent precision the
- * underlying fact does not have.
+ * question the desk actually asks. "Can I trade this client on FICC today" has
+ * a categorical answer, and forcing it into a number would invent precision
+ * the underlying fact does not have.
  *
  * Rows arrive worst first. This is a work queue, not a league table, so the top
  * of the list should be what needs doing rather than what is biggest.
@@ -17,6 +19,7 @@ export default function BankRelationships({ facts, setSlicer }) {
   const clients = clientsIn(facts);
   const [open, setOpen] = useState(null);
   const detail = clients.find((c) => c.name === open);
+  const groups = groupByUmbrella(LOBS);
 
   const impaired = clients.filter((c) => c.rag === 'crit');
   const worst = impaired[0];
@@ -39,6 +42,18 @@ export default function BankRelationships({ facts, setSlicer }) {
         <div className="matrix-wrap">
           <table className="matrix">
             <thead>
+              <tr className="matrix-umbrella-row">
+                <th colSpan={3} />
+                {groups.map((g) => {
+                  const u = UMBRELLAS.find((um) => um.id === g.umbrella);
+                  return (
+                    <th key={g.umbrella} colSpan={g.lobs.length} className="matrix-umbrella" title={u?.full}>
+                      {u?.label}
+                    </th>
+                  );
+                })}
+                <th colSpan={4} />
+              </tr>
               <tr>
                 <th className="matrix-name">Client</th>
                 <th>Risk</th>
