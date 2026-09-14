@@ -7,6 +7,8 @@ import Dashboard from './Dashboard';
 import BankingDashboard from './BankingDashboard';
 
 const NAV_LINKS = navLinks('dashboard');
+// Public assets need the Vite base prefix, same as projects.js.
+const BASE = import.meta.env.BASE_URL;
 
 /**
  * The work page that hosts running pieces.
@@ -151,6 +153,66 @@ export default function DashboardPage() {
               <span><strong>Workstreams</strong> onboarding, periodic review, emergency review, screening</span>
               <span><strong>Health</strong> scored down from a clean file, every deduction itemised</span>
               <span><strong>Slicers</strong> region, line, risk rating, cross-filtering every visual</span>
+            </div>
+          </section>
+
+          <section className="section" id="tableau">
+            <div className="section-head">
+              <span className="idx">03</span>
+              <h2>Data Science Salaries</h2>
+              <span className="count">Tableau Public &middot; opens live in a new tab</span>
+            </div>
+
+            <p className="piece-lede">
+              Built in Tableau Desktop and published to Tableau Public. Open it there for
+              the live version, where the Company Location and Job Title filters, the
+              tooltips and the Tableau toolbar all work.
+            </p>
+
+            {/* Tableau's canvas is white, so this frame takes the light skin too.
+                is-image: the frame's height follows the picture instead of the
+                fixed piece height, so there is no letterbox above or below it.
+                The live viz is published on a 2100 x 1227 canvas that the content
+                only part fills, so an embed showed dead space either side; a tight
+                screenshot linking out to the live viz reads better in the frame. */}
+            <div className="piece-frame is-light is-image">
+              <div className="piece-chrome">
+                <span className="piece-dots" aria-hidden="true">
+                  <span /><span /><span />
+                </span>
+                <span className="piece-url">public.tableau.com/views/ds_salaries_dashboard/Dashboard1</span>
+                <a
+                  className="piece-open"
+                  href="https://public.tableau.com/views/ds_salaries_dashboard/Dashboard1"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Open this dashboard on Tableau Public in a new tab"
+                >
+                  Open on Tableau Public
+                </a>
+              </div>
+
+              <a
+                className="piece-stage piece-shot"
+                href="https://public.tableau.com/views/ds_salaries_dashboard/Dashboard1"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Data Science Salaries dashboard, opens live on Tableau Public"
+              >
+                <img
+                  src={`${BASE}screenshots/tableau-ds-salaries.png`}
+                  width="1537"
+                  height="809"
+                  alt="Data Science Salaries (2026) dashboard: employment type, experience level and company size donuts, top ten employee residences, average salary by title and experience, a world map of average salary by country, and average salary in USD by employment type"
+                  loading="lazy"
+                />
+              </a>
+            </div>
+
+            <div className="piece-caption">
+              <span><strong>Source</strong> 607 salary records, 50 job titles, 50 company locations</span>
+              <span><strong>Worksheets</strong> salary by title and experience, country map, employment type, company size</span>
+              <span><strong>Hosted</strong> Tableau Public, live viz one click away</span>
             </div>
           </section>
 
