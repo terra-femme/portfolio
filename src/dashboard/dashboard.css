@@ -335,13 +335,16 @@
 
 .kpi-row {
   display: grid;
-  /* auto-fit + a real minimum rather than a fixed 4 columns plus manual
-     step-downs: a fixed column count has no floor on how narrow a card can
-     get before the breakpoint that would reduce it finally fires, and
-     "$22,278" at this row's max 34px font needs a little over 200px of card
-     width to not get clipped by .kpi's overflow:hidden. 220px keeps that
-     margin at every width instead of only at the widths someone tested. */
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  /* Fixed 4, stepped down at the two @container breakpoints below, rather
+     than auto-fit: with exactly four cards, auto-fit's column count is
+     whatever fits at the minimum width, and four does not divide evenly by
+     three -- there is always some width where auto-fit lands on 3 columns,
+     orphaning the fourth card alone on a second row with two columns' worth
+     of dead space beside it. A fixed step from 4 to 2 to 1 can only ever be
+     a complete grid at every width; there is no partial-row state to land
+     on. .kpi-value no longer depends on this row's width to size itself
+     (see .kpi below), so this is purely about column count, not overflow. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 18px;
 }
@@ -356,6 +359,11 @@
     radial-gradient(120% 100% at 0% 0%, color-mix(in oklab, var(--c-1) 8%, transparent), transparent 62%),
     var(--surface);
   animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* Query container for .kpi-value's font size: sizing off the CARD's own
+     width, not .kpi-row's or .dash-shell's, is what keeps the number
+     legible-but-fitting at every column count auto-fit lands on, rather
+     than only at the widths that happened to get tested by hand. */
+  container-type: inline-size;
 }
 .kpi:nth-child(2) { animation-delay: 0.06s; }
 .kpi:nth-child(3) { animation-delay: 0.12s; }
@@ -372,7 +380,10 @@
   display: block;
   margin-top: 9px;
   font-family: var(--display);
-  font-size: clamp(26px, 3.4cqw, 34px);
+  /* 15cqw of the CARD's own width: at the 160px floor that's 24px, and it
+     grows with the card up to the 34px ceiling once a card has room to
+     spare, e.g. when auto-fit only has to fit one or two per row. */
+  font-size: clamp(18px, 15cqw, 34px);
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -440,6 +451,7 @@
 
 .span-4 { grid-column: span 4; }
 .span-5 { grid-column: span 5; }
+.span-6 { grid-column: span 6; }
 .span-7 { grid-column: span 7; }
 .span-8 { grid-column: span 8; }
 .span-12 { grid-column: span 12; }
@@ -1052,11 +1064,12 @@
 
   .nav-toggle { display: flex; }
 
-  /* .kpi-row no longer needs a step here: auto-fit reflows it on its own. */
-  .span-4, .span-5, .span-7, .span-8, .span-12 { grid-column: 1 / -1; }
+  .kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .span-4, .span-5, .span-6, .span-7, .span-8, .span-12 { grid-column: 1 / -1; }
 }
 
 @container (max-width: 620px) {
+  .kpi-row { grid-template-columns: 1fr; }
   .dash-status { display: none; }        /* the title needs the width more */
   .donut-wrap { justify-content: center; }
   .hbar-row { grid-template-columns: minmax(70px, 40%) 1fr auto; }
@@ -1519,10 +1532,12 @@
 .bank-tiles {
   grid-column: 1 / -1;
   display: grid;
-  /* auto-fit + a floor width, same reasoning as .kpi-row: a fixed column
-     count plus manual step-downs leaves a zone where the breakpoint hasn't
-     fired yet but the cards are already too narrow for their content. */
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  /* Fixed 4, stepped down at the @container breakpoints below -- same
+     reasoning as .kpi-row: auto-fit has no way to avoid a partial, orphaned
+     row when four items don't divide evenly into however many columns fit
+     at the floor width. .bank-tile-value sizes off its own card (below),
+     not this row, so this is purely about column count. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 .bank-tile {
@@ -1531,6 +1546,7 @@
   border-radius: 16px;
   padding: 15px 17px 16px;
   animation: rise 0.5s cubic-bezier(0.22,1,0.36,1) both;
+  container-type: inline-size;
 }
 .bank-tile header { display: flex; align-items: center; gap: 9px; margin-bottom: 11px; }
 .bank-tile-icon {
@@ -1548,7 +1564,8 @@
   gap: 9px;
   flex-wrap: wrap;
   font-family: var(--display);
-  font-size: clamp(24px, 3cqw, 31px);
+  /* Off .bank-tile's own width now, same reasoning as .kpi-value. */
+  font-size: clamp(16px, 22cqw, 31px);
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -1753,12 +1770,14 @@
 .gantt-value { text-align: right; font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; }
 
 @container (max-width: 1100px) {
+  .bank-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bank-span-4, .bank-span-6, .bank-span-8 { grid-column: 1 / -1; }
 }
 @container (max-width: 760px) {
   .bank-top { flex-wrap: wrap; }
   .bank-brand, .bank-sync { flex: 0 0 auto; }
   .bank-tabs { order: 3; width: 100%; overflow-x: auto; }
+  .bank-tiles { grid-template-columns: 1fr; }
   .gantt-row { grid-template-columns: 130px 1fr 56px; }
   .gantt-axis { margin-left: 140px; margin-right: 64px; }
 }

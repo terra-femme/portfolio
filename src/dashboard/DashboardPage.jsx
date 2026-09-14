@@ -71,7 +71,7 @@ export default function DashboardPage() {
           <section className="section" id="dashboards">
             <div className="section-head">
               <span className="idx">01</span>
-              <h2>Analytics report</h2>
+              <h2>Analytics Report</h2>
               <span className="count">6 pages &middot; live in the frame</span>
             </div>
 
@@ -114,7 +114,7 @@ export default function DashboardPage() {
           <section className="section" id="coverage">
             <div className="section-head">
               <span className="idx">02</span>
-              <h2>Client lifecycle</h2>
+              <h2>Client Lifecycle</h2>
               <span className="count">3 pages &middot; onboarding, review, screening</span>
             </div>
 
