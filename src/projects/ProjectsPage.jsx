@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
 import Background3D from '../Background3D';
 import Card from '../Card';
@@ -6,11 +6,89 @@ import EmbedFrame from '../EmbedFrame';
 import ScrambleNav from '../ScrambleNav';
 import ScrambleWord from '../ScrambleWord';
 import { navLinks } from '../navLinks';
-import { caseStudies } from '../caseStudies';
+import { caseStudies, programNote } from '../caseStudies';
 
 // Same nav, background, card hover, and smooth scroll as the home page, so
 // this reads as a page of the same site rather than a different one.
 const NAV_LINKS = navLinks('projects');
+
+// Sticky note from caseStudies.js (programNote). Rendered in the left column so
+// it lines up with the text of the case study that follows it.
+// Draggable with mouse, touch, or the arrow keys (Shift for bigger steps). The
+// position lives in React state only, so a reload puts the note back in place.
+const TILT = -1.2;
+
+function StickyNote({ note }) {
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const drag = useRef(null);
+
+  useEffect(() => {
+    console.log(`[projects-page] sticky note mounted in hero, ${note.paragraphs.length} paragraphs`);
+  }, [note]);
+
+  const onPointerDown = (e) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    drag.current = { startX: e.clientX, startY: e.clientY, origX: offset.x, origY: offset.y };
+    setDragging(true);
+    console.log(`[projects-page] sticky note drag start x=${offset.x} y=${offset.y}`);
+  };
+
+  const onPointerMove = (e) => {
+    if (!drag.current) return;
+    setOffset({
+      x: drag.current.origX + e.clientX - drag.current.startX,
+      y: drag.current.origY + e.clientY - drag.current.startY,
+    });
+  };
+
+  const endDrag = () => {
+    if (!drag.current) return;
+    drag.current = null;
+    setDragging(false);
+    console.log('[projects-page] sticky note drag end');
+  };
+
+  const onKeyDown = (e) => {
+    const step = e.shiftKey ? 40 : 10;
+    const moves = {
+      ArrowLeft: [-step, 0],
+      ArrowRight: [step, 0],
+      ArrowUp: [0, -step],
+      ArrowDown: [0, step],
+    };
+    const m = moves[e.key];
+    if (!m) return;
+    e.preventDefault();
+    setOffset((o) => ({ x: o.x + m[0], y: o.y + m[1] }));
+    console.log(`[projects-page] sticky note moved by keyboard key=${e.key}`);
+  };
+
+  return (
+    <div className="hero-note">
+      <aside
+        className={`sticky-note${dragging ? ' is-dragging' : ''}`}
+        aria-label={`${note.label} note. Drag to move, or use the arrow keys.`}
+        title="Drag to move this note"
+        tabIndex={0}
+        style={{ transform: `translate(${offset.x}px, ${offset.y}px) rotate(${TILT}deg)` }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onKeyDown={onKeyDown}
+      >
+        <svg className="drag-arrow" viewBox="0 0 70 50" aria-hidden="true" focusable="false">
+          <path d="M4 6 C 26 -2, 50 12, 62 38" />
+          <path d="M55 35 L62 38 L59 31" />
+        </svg>
+        <span className="sticky-note-label">{note.label}</span>
+        {note.paragraphs.map((t) => <p key={t}>{t}</p>)}
+        <span className="sticky-note-footer">drag me</span>
+      </aside>
+    </div>
+  );
+}
 
 function CaseStudy({ p, flip }) {
   return (
@@ -95,7 +173,7 @@ export default function ProjectsPage() {
 
       <main className="content">
         <div className="cs-wrap">
-          <header className="hero" id="top">
+          <header className="hero hero--note" id="top">
             <div className="eyebrow">Engineering projects</div>
             <h1>Systems built for <ScrambleWord as="em" text="real work." /></h1>
             <p>
@@ -103,6 +181,7 @@ export default function ProjectsPage() {
               today. Sample data shown is synthetic or public.
             </p>
             <div className="scroll-hint">Scroll to explore</div>
+            <StickyNote note={programNote} />
           </header>
 
           <section className="section" id="cases">
