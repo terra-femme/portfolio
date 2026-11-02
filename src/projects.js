@@ -1,7 +1,24 @@
 // Edit this file to add your work.
 //
-// Put clip files in:   public/videos/yourclip.mp4
-// Optional poster in:  public/posters/yourclip.jpg  (still frame shown before the video loads)
+// ADDING A NEW PIECE (follow these steps in order)
+//   1. Video:   public/videos/clipNN.mp4   (H.264, see README "Adding a clip")
+//   2. Poster:  public/posters/clipNN.jpg  (still frame shown before the video loads)
+//   3. Copy an existing `const clipNN = { ... }` block below and rename it. Fields:
+//        title   name shown on the card and in the lightbox
+//        tag     short category label, e.g. 'TouchDesigner'
+//        desc    one or two plain sentences, no em dashes
+//        video   `${BASE}videos/clipNN.mp4`   (keep the BASE prefix)
+//        poster  `${BASE}posters/clipNN.jpg`  (keep the BASE prefix)
+//        initial single letter on the gradient face when no poster loads
+//        grad    two hex colours for the gradient fallback
+//        plain   true = no text box, autoplay only (for pieces the image speaks for)
+//        static  true = text always visible, not hover-to-reveal (statements only)
+//   4. Add the new const to the `tdProjects` array (this sets the "N clips" count).
+//   5. Place it in a row in `tdLayout`. Each row type takes a fixed number of items:
+//        'wide' = 1 item, 'trio' and 'trio-reverse' = 3 items. Count before saving.
+//   6. Run `npm run dev` and check the new card on the page before pushing.
+//
+// Public assets (videos, posters, screenshots) must be prefixed with BASE_URL
 //
 // Public assets (videos, posters, screenshots) must be prefixed with BASE_URL
 // because vite.config.js sets `base: '/portfolio/'` for GitHub Pages — a
@@ -40,9 +57,9 @@ const clip03 = {
   grad: ['#7c5cff', '#ef6f6c'],
 };
 const clip04 = {
-  title: 'Clip 04',
+  title: 'Black Glossy',
   tag: 'TouchDesigner',
-  desc: 'Placeholder title/description — swap in the real ones.',
+  desc: 'Glossy black lattice form, rendered in real time.',
   video: `${BASE}videos/clip04.mp4`,
   poster: `${BASE}posters/clip04.jpg`,
   initial: 'T',
@@ -50,9 +67,9 @@ const clip04 = {
   plain: true, // no text box — just autoplays
 };
 const clip05 = {
-  title: 'Clip 05',
+  title: 'Faceted Tiles',
   tag: 'TouchDesigner',
-  desc: 'Placeholder title/description — swap in the real ones.',
+  desc: 'Faceted tile structures with prismatic edge light.',
   video: `${BASE}videos/clip05.mp4`,
   poster: `${BASE}posters/clip05.jpg`,
   initial: 'T',
@@ -69,9 +86,9 @@ const clip06 = {
   grad: ['#7c5cff', '#4fd6e0'],
 };
 const clip07 = {
-  title: 'Clip 07',
+  title: 'Ridge Study',
   tag: 'TouchDesigner',
-  desc: 'Placeholder title/description — swap in the real ones.',
+  desc: 'Layered ridge forms with iridescent shading and fractal texture.',
   video: `${BASE}videos/clip07.mp4`,
   poster: `${BASE}posters/clip07.jpg`,
   initial: 'T',
@@ -79,9 +96,9 @@ const clip07 = {
   plain: true, // no text box — just autoplays
 };
 const clip08 = {
-  title: 'Clip 08',
+  title: 'Gallery View',
   tag: 'TouchDesigner',
-  desc: 'Placeholder title/description — swap in the real ones.',
+  desc: 'A framed fractal shown in a gallery setting.',
   video: `${BASE}videos/clip08.mp4`,
   poster: `${BASE}posters/clip08.jpg`,
   initial: 'T',

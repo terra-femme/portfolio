@@ -21,6 +21,8 @@ export default defineConfig({
       input: {
         main: entry('./index.html'),
         dashboard: entry('./dashboard.html'),
+        projects: entry('./projects.html'),
+        azure: entry('./azure.html'),
       },
     },
   },

@@ -29,6 +29,16 @@ a { color: inherit; text-decoration: none; }
 .nav .links a:hover { color: var(--ink); }
 /* Non-link nav labels: no pointer, no hover colour shift. */
 .nav .links .nav-static { cursor: default; }
+
+/* The page you are on. Shared by every page through navLinks(), so the
+   visitor always sees where they are. A slow breath keeps it alive without
+   competing with the scramble animation on the other labels. */
+.nav .links .is-current { color: var(--accent); font-weight: 600; animation: nav-current-glow 3.2s ease-in-out infinite; }
+@keyframes nav-current-glow {
+  0%, 100% { text-shadow: 0 0 0.25em rgba(31,138,76,0.35); }
+  50%      { text-shadow: 0 0 0.6em rgba(31,138,76,0.7), 0 0 1.2em rgba(31,138,76,0.35); }
+}
+@media (prefers-reduced-motion: reduce){ .nav .links .is-current { animation: none; text-shadow: 0 0 0.4em rgba(31,138,76,0.5); } }
 .scramble-word { display: inline-flex; perspective: 240px; }
 /* Each letter is its own flex item inside .scramble-word, so a span holding
    only a space has that space collapsed away and multi-word labels run

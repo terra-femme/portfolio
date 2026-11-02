@@ -162,7 +162,12 @@ export default function ScrambleNav({ links }) {
         // takes part in the passive auto-cycle.
         if (!link.href) {
           return (
-            <span key={link.label} className="nav-static" aria-label={link.label}>
+            <span
+              key={link.label}
+              className={`nav-static${link.current ? ' is-current' : ''}`}
+              aria-label={link.label}
+              aria-current={link.current ? 'page' : undefined}
+            >
               {letters}
             </span>
           );
@@ -172,6 +177,8 @@ export default function ScrambleNav({ links }) {
           <a
             key={link.href}
             href={link.href}
+            className={link.current ? 'is-current' : undefined}
+            aria-current={link.current ? 'page' : undefined}
             aria-label={link.label}
             onMouseEnter={() => handleHoverSweep(i)}
             onFocus={() => handleHoverSweep(i)}
