@@ -154,3 +154,14 @@ export const caseStudies = [
     repo: 'https://github.com/terra-femme/AI_Enablement',
   },
 ];
+
+// Privacy note shown in the empty right side of the Programs hero. It can be
+// dragged around the page. Each paragraph is a plain string.
+// Claims here need owner confirmation before merge (see the PR checklist).
+export const programNote = {
+  label: 'Privacy',
+  paragraphs: [
+    "Privacy by design. HiScribe and MedJournee run their text step on a small open model, Gemma 4 E2B, on the clinician's or family member's own iPad or phone, so the clinical text and transcript stay on the device.",
+    'If a device cannot run the model, the fallback is a cloud LLM only under a Business Associate Agreement and with consent. Speech recognition still uses cloud services in both projects in this version.',
+  ],
+};

@@ -367,6 +367,73 @@
 .sink b { display: block; font-family: var(--display); font-size: 17px; margin-bottom: 6px; }
 .sink p { font-size: 14px; color: var(--ink-dim); line-height: 1.55; }
 
+/* ---------- Program note (sticky, draggable) ----------
+   Lives in the empty right side of the Programs hero. The wrapper is absolutely
+   positioned so the hero text keeps its own width. The tilt and drag offset are
+   set inline by StickyNote. */
+.hero--note { position: relative; }
+.hero-note {
+  position: absolute;
+  right: 0;
+  top: 43%;
+  width: min(400px, 42%);
+}
+.sticky-note {
+  position: relative;
+  z-index: 2;
+  max-width: 420px;
+  background: #fbf3c4;
+  border: 1px solid #efe29a;
+  border-radius: 2px 2px 14px 2px;
+  box-shadow: 0 10px 22px rgba(60, 50, 10, 0.12), 0 2px 4px rgba(60, 50, 10, 0.08);
+  padding: 22px 22px 20px;
+  /* The rotation is set inline with the drag offset (see StickyNote). */
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.sticky-note.is-dragging { cursor: grabbing; box-shadow: 0 18px 34px rgba(60, 50, 10, 0.22), 0 4px 8px rgba(60, 50, 10, 0.12); }
+.sticky-note:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.sticky-note-label {
+  display: block;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #7a6a1c;
+  margin-bottom: 8px;
+}
+.sticky-note p { font-size: 14px; line-height: 1.6; color: #3d3a22; }
+.sticky-note p + p { margin-top: 10px; }
+.sticky-note-footer {
+  display: block;
+  text-align: right;
+  margin-top: 12px;
+  font-family: var(--display);
+  font-size: 13px;
+  color: #7a6a1c;
+}
+.hero-note .sticky-note { max-width: none; width: 100%; }
+/* Hand-drawn arrow from the left of the note into it. Decorative only. */
+.drag-arrow {
+  position: absolute;
+  left: -78px;
+  top: 0;
+  width: 70px;
+  height: 50px;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+  stroke: #7a6a1c;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (max-width: 760px) {
+  .hero-note { position: static; width: auto; margin-top: 36px; }
+  .drag-arrow { display: none; }
+}
+
 /* ---------- Small screens ---------- */
 @media (max-width: 900px) {
   /* The rail's six stops only line up with the cards in a single row of six.
