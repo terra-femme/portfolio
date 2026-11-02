@@ -1,0 +1,383 @@
+/* Layout for the Projects and Azure pages (projects.html, azure.html).
+ *
+ * Both pages load index.css first, so every colour, font, nav rule, card rule,
+ * and section rule here comes from the home page. This file only adds the
+ * pieces the home page does not have: the two-column case-study rows, the
+ * pipeline steps, and the demo panel.
+ */
+
+.cs-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--nav-clear) clamp(20px, 5vw, 64px) 0;
+}
+
+/* ---------- Case studies ---------- */
+.cs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: clamp(28px, 5vw, 64px);
+  align-items: start;
+  padding: 40px 0;
+  border-bottom: 1px solid var(--line);
+}
+.cs:last-of-type { border-bottom: none; }
+.cs--flip .cs-media { order: 2; }
+.cs-media { position: sticky; top: calc(var(--nav-clear) + 12px); }
+.cs-media .card { width: 100%; }
+
+/* Top layout: image spans the full content width, text sits underneath. No
+   sticky, so the image scrolls with the page like any other section. The text
+   column is capped so long lines stay readable under a wide image. */
+.cs--top { grid-template-columns: 1fr; gap: 28px; }
+.cs--top .cs-media { position: static; }
+.cs--top .cs-body { max-width: 760px; }
+
+/* Embedded live demo (HiScribe). Same 4:3 frame as the image cards, with the
+   page's own border and radius so it reads as part of the layout. */
+.cs-embed {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #f4f5f3;
+}
+
+.cs-body h3 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(26px, 3.4vw, 36px);
+  letter-spacing: -0.02em;
+  margin: 10px 0 18px;
+}
+.cs-body h4 {
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin: 22px 0 8px;
+  font-weight: 600;
+}
+.cs-body p { font-size: 15px; line-height: 1.65; color: var(--ink); }
+
+.cs-status {
+  display: inline-block;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+.cs-status--live { color: var(--accent); background: var(--accent-soft); }
+.cs-status--wip { color: #8a5a1f; background: #f7efe2; }
+
+.cs-stack { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; }
+.cs-stack li {
+  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px 10px;
+  background: var(--card);
+}
+
+.cs-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin: 18px 0 4px;
+}
+.cs-metrics > div {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--card);
+}
+.cs-metrics dt {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.cs-metrics dd { font-size: 13px; line-height: 1.5; color: var(--ink-dim); }
+
+.cs-note { font-size: 13px !important; color: var(--ink-dim) !important; line-height: 1.6; margin-top: 16px; }
+.cs-repo { font-size: 14px !important; margin-top: 22px; color: var(--ink-dim) !important; }
+.cs-repo a { color: var(--accent); border-bottom: 1px solid var(--accent-soft); }
+.cs-repo a:hover { border-bottom-color: var(--accent); }
+
+/* ---------- Azure pipeline ---------- */
+/* Six columns, shared by the rail above and the step cards below, so each
+   lit segment sits exactly over its stop. */
+.rail-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.rail-track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: var(--line);
+  transform: translateY(-50%);
+}
+.rail-cell {
+  position: relative;
+  height: 4px;
+  border-radius: 4px;
+  background: transparent;
+  transition: background 0.5s ease, box-shadow 0.5s ease;
+}
+.rail-cell.on { background: var(--accent); }
+.rail-cell.head {
+  box-shadow: 0 0 10px 2px rgba(31, 138, 76, 0.55), 0 0 22px 4px rgba(31, 138, 76, 0.25);
+}
+
+.flow {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  list-style: none;
+}
+.flow-step {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  background: var(--card);
+  transition: border-color 0.4s, background 0.4s, box-shadow 0.4s, transform 0.4s;
+}
+/* The stop the rail is on: it lifts and glows, then the rail moves on. */
+.flow-step.is-lit {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 24px -2px rgba(31, 138, 76, 0.45);
+}
+.flow-name {
+  display: block;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 17px;
+  margin-bottom: 6px;
+}
+.flow-note { display: block; font-size: 13px; color: var(--ink-dim); line-height: 1.5; }
+
+/* ---------- Demo ---------- */
+.demo-run {
+  font-family: var(--display);
+  font-size: 15px;
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 20px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.demo-run:disabled { opacity: 0.5; cursor: default; }
+
+.demo-panel {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 18px;
+  background: var(--card);
+  min-height: 120px;
+}
+.demo-panel .cs-note:first-child { margin-top: 0; }
+
+.demo-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
+.demo-table th,
+.demo-table td { text-align: left; padding: 9px 6px; border-bottom: 1px solid var(--line); }
+.demo-table th { color: var(--ink-dim); font-weight: 600; }
+.num { text-align: right !important; font-variant-numeric: tabular-nums; }
+
+.approve { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+.approve .cs-note { margin-top: 0; }
+
+.demo-bars { display: grid; gap: 10px; margin-top: 18px; }
+.demo-bar-row {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) 70px;
+  gap: 12px;
+  align-items: center;
+  font-size: 14px;
+}
+.demo-bar-row dt { color: var(--ink); }
+.demo-bar-row dd { margin: 0; }
+.demo-bar {
+  display: block;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.6s;
+}
+
+/* ---------- Demo video ---------- */
+.dv-bar { height: 3px; background: var(--line); border-radius: 3px; overflow: hidden; margin-bottom: 12px; }
+.dv-bar span { display: block; height: 100%; background: var(--accent); transition: width 0.6s ease; }
+.dv-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+.dv-stage {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px;
+  background: var(--card);
+  min-height: 340px;
+}
+@keyframes dv-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.dv-in { opacity: 0; animation: dv-in 0.55s ease forwards; }
+@media (prefers-reduced-motion: reduce) { .dv-in { opacity: 1; animation: none; } }
+
+/* Scene 1: receipt */
+.dv-receipt {
+  max-width: 380px;
+  margin: 0 auto;
+  padding: 18px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: var(--bg-1);
+  font-size: 14px;
+}
+.dv-receipt-head { display: flex; justify-content: space-between; padding-bottom: 10px; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
+.dv-receipt-line,
+.dv-receipt-total { display: flex; justify-content: space-between; padding: 6px 0; }
+.dv-receipt-total { margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--line); font-weight: 600; }
+
+/* Scene 2: pipeline steps. The shared rail is hidden under 900px, so the demo
+   version forces it on to keep the steps visible on phones. */
+.dv-steps { display: grid; gap: 28px; padding-top: 12px; }
+.rail-track.dv-rail { display: grid; margin-bottom: 0; }
+.dv-caption { font-size: 15px; color: var(--ink-dim); line-height: 1.6; }
+.dv-caption b { display: block; font-family: var(--display); font-size: 22px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+
+/* Scene 3: workflow */
+.dv-workflow { display: grid; gap: 10px; max-width: 520px; margin: 0 auto; }
+.dv-field {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  font-size: 14px;
+}
+.dv-badge { justify-self: start; margin-top: 8px; padding: 6px 14px; border-radius: 999px; font-size: 13px; color: var(--accent); background: var(--accent-soft); }
+.dv-sink { padding: 12px 14px; border: 1px solid var(--accent); border-radius: 10px; font-size: 14px; }
+
+/* Scene 3: unstructured text, structured fields, spreadsheet rows. Three panels
+   in a row on desktop, stacked on phones (arrows hidden there). */
+.dv-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.dv-panel {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--bg-1);
+  min-width: 0;
+}
+.dv-panel-title {
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 8px;
+}
+.dv-raw,
+.dv-json {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: pre;
+  overflow-x: auto;
+}
+.dv-raw { background: var(--card); border: 1px dashed var(--line); border-radius: 6px; padding: 10px; }
+.dv-json { color: var(--ink); }
+.dv-arrow {
+  align-self: center;
+  font-size: 22px;
+  color: var(--accent);
+  padding: 0 2px;
+}
+.dv-sheet-caption { font-size: 11px; color: var(--ink-dim); margin-bottom: 6px; }
+.dv-sheet { width: 100%; border-collapse: collapse; font-size: 11px; background: var(--card); }
+.dv-sheet th,
+.dv-sheet td { text-align: left; padding: 5px 4px; border: 1px solid var(--line); }
+.dv-sheet th { color: var(--ink-dim); font-weight: 600; background: var(--bg-1); }
+.dv-sheet .num { text-align: right; }
+.dv-sheet-total th { color: var(--accent); }
+.dv-approve-line {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-top: 4px;
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+@media (max-width: 760px) {
+  .dv-flow { grid-template-columns: minmax(0, 1fr); }
+  .dv-arrow { display: none; }
+}
+
+/* Scene 4: report */
+.dv-final { display: grid; gap: 18px; }
+.dv-kpi { display: flex; flex-direction: column; }
+.dv-kpi span { font-size: 13px; color: var(--ink-dim); }
+.dv-kpi b { font-family: var(--display); font-size: 40px; color: var(--accent); }
+.dv-final .dv-caption { font-size: 14px; }
+.demo-bar { transition: width 0.9s ease; }
+
+.dv-replay { margin-top: 0 !important; padding: 8px 14px !important; font-size: 13px !important; }
+
+/* ---------- Sinks ---------- */
+.sinks { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.sink {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  background: var(--card);
+}
+.sink b { display: block; font-family: var(--display); font-size: 17px; margin-bottom: 6px; }
+.sink p { font-size: 14px; color: var(--ink-dim); line-height: 1.55; }
+
+/* ---------- Small screens ---------- */
+@media (max-width: 900px) {
+  /* The rail's six stops only line up with the cards in a single row of six.
+     Below that width the cards wrap, so the rail is hidden and the lit card
+     still shows where the loop is. */
+  .rail-track { display: none; }
+  .flow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .cs { grid-template-columns: 1fr; padding: 32px 0; }
+  .cs--flip .cs-media { order: 0; }
+  .cs-media { position: static; }
+  .demo-bar-row { grid-template-columns: 110px minmax(0, 1fr) 60px; }
+}

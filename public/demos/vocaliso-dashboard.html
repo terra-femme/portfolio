@@ -1,0 +1,273 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VocalIso pipeline dashboard (synthetic demo)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f4f5f3;
+            color: #2d312e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .dash {
+            width: 100%;
+            max-width: 1080px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: 40px;
+            padding: 30px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 14px;
+            background-color: #f4f5f3;
+            background-image:
+                linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px);
+            background-size: 20px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .lane-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .workspace { position: relative; display: flex; flex-direction: column; gap: 22px; }
+        .wave-lane { position: relative; height: 110px; }
+        .wave-svg { width: 100%; height: 100%; display: block; }
+        .divider {
+            position: relative;
+            height: 1px;
+            background: rgba(0,0,0,0.1);
+            margin: 4px 0;
+        }
+        .divider span {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: #f4f5f3;
+            padding: 0 14px;
+            font-size: 12px;
+            color: #888;
+            white-space: nowrap;
+        }
+        .cursor {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 2px;
+            background: #1f8a4c;
+            box-shadow: 0 0 8px rgba(31, 138, 76, 0.45);
+            pointer-events: none;
+        }
+        .diar-container {
+            position: relative;
+            height: 45px;
+            background: rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .diar-block {
+            position: absolute;
+            top: 6px;
+            height: 31px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #333;
+        }
+        .speaker-a { background: rgba(65,105,225,0.22); border-left: 3px solid rgba(65,105,225,0.8); }
+        .speaker-b { background: rgba(245,158,11,0.22); border-left: 3px solid rgba(245,158,11,0.8); }
+        .telemetry {
+            display: flex;
+            flex-direction: column;
+            gap: 26px;
+            border-left: 1px dashed rgba(0,0,0,0.12);
+            padding-left: 32px;
+        }
+        .metric { display: flex; flex-direction: column; gap: 5px; }
+        .metric-name { font-size: 12px; color: #6a716c; }
+        .metric-track {
+            height: 6px;
+            background: rgba(0,0,0,0.06);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .metric-fill {
+            height: 100%;
+            width: 40%;
+            background: #555;
+            border-radius: 3px;
+            transition: width 0.12s linear;
+        }
+        .gauge { display: flex; flex-direction: column; align-items: center; margin-top: 8px; }
+        .gauge svg { width: 200px; height: 110px; }
+        .gauge-labels {
+            width: 180px;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            color: #666;
+            margin-top: -6px;
+        }
+        .note {
+            grid-column: 1 / -1;
+            font-size: 11px;
+            color: #6a716c;
+            text-align: center;
+            opacity: 0.85;
+        }
+        @media (max-width: 760px) {
+            .dash { grid-template-columns: 1fr; padding: 22px; }
+            .telemetry { border-left: none; padding-left: 0; border-top: 1px dashed rgba(0,0,0,0.12); padding-top: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dash" id="dash">
+        <div class="workspace" id="workspace">
+            <div class="cursor" id="cursor"></div>
+
+            <div>
+                <div class="lane-title">Raw recording signal</div>
+                <div class="wave-lane">
+                    <svg class="wave-svg" viewBox="0 0 700 100" preserveAspectRatio="none">
+                        <path d="M 0 42 L 700 42 L 700 58 L 0 58 Z" fill="rgba(0,0,0,0.06)" />
+                        <path id="raw-wave" fill="none" stroke="#2c2c2c" stroke-width="1.5" />
+                        <circle cx="150" cy="18" r="10" fill="rgba(245,158,11,0.25)" />
+                        <circle cx="380" cy="12" r="14" fill="rgba(245,158,11,0.25)" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="divider"><span>Corrected: DSP chain applied</span></div>
+
+            <div>
+                <div class="lane-title">Pipeline output</div>
+                <div class="wave-lane">
+                    <svg class="wave-svg" viewBox="0 0 700 100" preserveAspectRatio="none">
+                        <path id="clean-wave" fill="none" stroke="#1f8a4c" stroke-width="1.5" />
+                    </svg>
+                </div>
+            </div>
+
+            <div>
+                <div class="lane-title">Speaker channels (planned)</div>
+                <div class="diar-container">
+                    <div class="diar-block speaker-a" style="left: 5%; width: 30%;">Speaker A</div>
+                    <div class="diar-block speaker-b" style="left: 28%; width: 25%;">Speaker B</div>
+                    <div class="diar-block speaker-a" style="left: 58%; width: 20%;">Speaker A</div>
+                    <div class="diar-block speaker-b" style="left: 80%; width: 15%;">Speaker B</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="telemetry">
+            <div class="lane-title">Acoustic telemetry</div>
+            <div class="metric"><span class="metric-name">Loudness (LUFS)</span><div class="metric-track"><div class="metric-fill" id="m1"></div></div></div>
+            <div class="metric"><span class="metric-name">Peak level (dB)</span><div class="metric-track"><div class="metric-fill" id="m2"></div></div></div>
+            <div class="metric"><span class="metric-name">Noise floor (dB)</span><div class="metric-track"><div class="metric-fill" id="m3"></div></div></div>
+            <div class="metric"><span class="metric-name">Sibilance ratio</span><div class="metric-track"><div class="metric-fill" id="m4"></div></div></div>
+            <div class="metric"><span class="metric-name">Spectral centroid (Hz)</span><div class="metric-track"><div class="metric-fill" id="m5"></div></div></div>
+            <div class="metric"><span class="metric-name">Zero-crossing rate</span><div class="metric-track"><div class="metric-fill" id="m6"></div></div></div>
+
+            <div class="gauge">
+                <div class="lane-title">Anomaly score</div>
+                <svg viewBox="0 0 200 110" aria-label="Anomaly score gauge">
+                    <path d="M 30 100 A 70 70 0 0 1 170 100" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="12" stroke-linecap="round" />
+                    <path id="gauge-arc" d="M 30 100 A 70 70 0 0 1 170 100" fill="none" stroke="#1f8a4c" stroke-width="12" stroke-linecap="round" />
+                    <line id="needle" x1="100" y1="100" x2="100" y2="48" stroke="#2d312e" stroke-width="2" stroke-linecap="round" />
+                    <circle cx="100" cy="100" r="4" fill="#2d312e" />
+                </svg>
+                <div class="gauge-labels"><span>0</span><span>1</span></div>
+            </div>
+        </div>
+
+        <div class="note">Synthetic demo. The waveforms and meters are animated for illustration and are not measured from a recording.</div>
+    </div>
+
+    <script>
+        // Half-length of the semicircle arc (radius 70), used to draw the score fill.
+        const ARC_LENGTH = Math.PI * 70;
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // Builds both waveforms from one shared shape, so the corrected signal
+        // reads as the raw signal after the chain has smoothed it.
+        function buildWaves() {
+            let raw = 'M 0 50';
+            let clean = 'M 0 50';
+            for (let x = 0; x <= 700; x += 3) {
+                const base = Math.sin(x * 0.05) * Math.cos(x * 0.01) * 15;
+                const ripple = Math.sin(x * 0.4) * 3;
+                let spike = 0;
+                if (x > 130 && x < 170) spike = Math.sin(x * 0.2) * 32;
+                if (x > 360 && x < 400) spike = Math.cos(x * 0.15) * 38;
+                raw += ` L ${x} ${50 + base + ripple + spike}`;
+                clean += ` L ${x} ${50 + base * 0.6 + ripple * 0.1}`;
+            }
+            document.getElementById('raw-wave').setAttribute('d', raw);
+            document.getElementById('clean-wave').setAttribute('d', clean);
+            console.log('[vocaliso-demo] waveforms built, 234 points each');
+        }
+
+        function frame(t) {
+            // Playback cursor sweeps the workspace and loops every 14 seconds.
+            const pos = ((t / 14000) % 1) * 100;
+            document.getElementById('cursor').style.left = `${pos}%`;
+
+            // Six telemetry meters, each on its own phase so they do not move in step.
+            for (let i = 1; i <= 6; i++) {
+                const v = 40 + Math.sin(t * 0.002 + i) * 22 + Math.sin(t * 0.0137 * i) * 6;
+                document.getElementById(`m${i}`).style.width = `${Math.max(10, Math.min(v, 95))}%`;
+            }
+
+            // Anomaly score stays near the low end, which is the normal case for clean audio.
+            const score = 0.12 + Math.sin(t * 0.001) * 0.03;
+            const angle = -90 + score * 180;
+            document.getElementById('needle').setAttribute('transform', `rotate(${angle} 100 100)`);
+            document.getElementById('gauge-arc').setAttribute('stroke-dasharray', `${ARC_LENGTH}`);
+            document.getElementById('gauge-arc').setAttribute('stroke-dashoffset', `${ARC_LENGTH * (1 - score)}`);
+        }
+
+        // Tell the host page how tall this dashboard is, so the embedding frame
+        // can fit it. Only a number is sent; the host cannot read this document.
+        function reportHeight() {
+            const height = Math.ceil(document.body.getBoundingClientRect().height) + 2;
+            window.parent.postMessage({ type: 'demo-height', height }, '*');
+        }
+        new ResizeObserver(reportHeight).observe(document.body);
+
+        buildWaves();
+        reportHeight();
+        if (reduced) {
+            frame(0);
+            console.log('[vocaliso-demo] reduced motion, static frame');
+        } else {
+            const loop = (t) => { frame(t); requestAnimationFrame(loop); };
+            requestAnimationFrame(loop);
+            console.log('[vocaliso-demo] animation running');
+        }
+    </script>
+</body>
+</html>
+

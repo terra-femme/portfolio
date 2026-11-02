@@ -1,0 +1,502 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiScribe - Conceptual Workflow Prototype</title>
+    <!-- Google Fonts for Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #f4f5f3;
+            --accent-green: #1f8a4c;
+            --accent-green-hover: #166437;
+            --panel-bg: #ffffff;
+            --bubble-clinician: #eef5f0;
+            --bubble-patient: #f0f2f5;
+            --text-main: #2d312e;
+            --text-muted: #6a716c;
+            --bar-color: #d1d5d2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            /* Faint grid background pattern */
+            background-image: 
+                linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 28px;
+            color: var(--text-main);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Container & Grid Setup */
+        .workspace {
+            position: relative;
+            display: flex;
+            width: 100%;
+            max-width: 1080px;
+            background: transparent;
+            gap: 60px;
+            align-items: stretch;
+        }
+
+        .panel {
+            flex: 1;
+            background: var(--panel-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Waveform Icon styling */
+        .waveform-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 3px;
+            margin-bottom: 24px;
+            height: 24px;
+        }
+
+        .wave-bar {
+            width: 3px;
+            background-color: var(--accent-green);
+            border-radius: 2px;
+            height: 8px;
+            animation: quiet 1.2s ease-in-out infinite alternate;
+        }
+
+        .wave-bar:nth-child(2) { height: 16px; animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { height: 24px; animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { height: 14px; animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { height: 20px; animation-delay: 0.4s; }
+        .wave-bar:nth-child(6) { height: 8px; animation-delay: 0.15s; }
+
+        @keyframes quiet {
+            0% { transform: scaleY(0.6); }
+            100% { transform: scaleY(1.3); }
+        }
+
+        /* Transcript Stack (Left Panel) */
+        .transcript-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-line {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .speaker-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .bubble {
+            padding: 12px 16px;
+            border-radius: 12px;
+            width: 75%; min-width: 220px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .clinician .bubble {
+            background-color: var(--bubble-clinician);
+            align-self: flex-start;
+            border-top-left-radius: 2px;
+        }
+
+        .patient .bubble {
+            background-color: var(--bubble-patient);
+            align-self: flex-start;
+            border-top-left-radius: 2px;
+        }
+
+        /* Abstract gray text placeholders */
+        .placeholder-line {
+            height: 8px;
+            background-color: var(--bar-color);
+            border-radius: 4px;
+            opacity: 0.75;
+        }
+
+        .w-full { width: 100%; }
+        .w-75 { width: 75%; }
+        .w-60 { width: 60%; }
+        .w-40 { width: 40%; }
+
+        /* Notes Structure (Right Panel) */
+        .note-section {
+            margin-bottom: 24px;
+        }
+
+        .note-section h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        .note-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .note-lines .placeholder-line {
+            height: 10px;
+            background-color: #cbd1cc;
+        }
+
+        /* Action Buttons */
+        .button-wrapper {
+            margin-top: auto;
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 12px;
+        }
+
+        .btn-approve {
+            background-color: var(--accent-green);
+            color: #ffffff;
+            border: none;
+            padding: 12px 32px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-approve:hover {
+            background-color: var(--accent-green-hover);
+        }
+
+        .btn-approve:active {
+            transform: scale(0.98);
+        }
+
+        /* SVG Connecting Overlay Layer */
+        .connector-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connector-line {
+            fill: none;
+            stroke: var(--accent-green);
+            stroke-width: 1.5px;
+            stroke-dasharray: 4;
+            animation: dash 30s linear infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -1000; }
+        }
+
+        /* Interactive Success Overlay */
+        .success-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .success-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .success-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--bubble-clinician);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .success-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: var(--accent-green);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .success-overlay h4 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .success-overlay p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            margin-bottom: 16px;
+        }
+
+        .btn-reset {
+            background: transparent;
+            border: 1px solid var(--bar-color);
+            padding: 8px 16px;
+            font-size: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-reset:hover {
+            background-color: #f0f1f0;
+            color: var(--text-main);
+        }
+
+        /* Disclaimer Footnote Styling */
+        .footnote {
+            margin-top: 40px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.4;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>HiScribe</h1>
+        <p>Interactive Ambient Workflow Demonstration</p>
+    </div>
+
+    <div class="workspace" id="workspaceContainer">
+        <!-- SVG connecting flows visually -->
+        <svg class="connector-svg" id="connectorSvg">
+            <!-- Top logic flow connector path dynamically sized or static approximation -->
+            <path id="flowPath" class="connector-line" d="M 450 250 C 520 250, 520 380, 590 380" />
+        </svg>
+
+        <!-- Left Transcript Panel -->
+        <div class="panel" id="transcriptPanel">
+            <div class="waveform-container">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+
+            <div class="transcript-stack">
+                <div class="chat-line clinician">
+                    <span class="speaker-label">Clinician</span>
+                    <div class="bubble">
+                        <div class="placeholder-line w-full"></div>
+                        <div class="placeholder-line w-60"></div>
+                    </div>
+                </div>
+
+                <div class="chat-line patient">
+                    <span class="speaker-label">Patient</span>
+                    <div class="bubble">
+                        <div class="placeholder-line w-75"></div>
+                        <div class="placeholder-line w-40"></div>
+                    </div>
+                </div>
+
+                <div class="chat-line clinician">
+                    <span class="speaker-label">Clinician</span>
+                    <div class="bubble">
+                        <div class="placeholder-line w-full"></div>
+                    </div>
+                </div>
+
+                <div class="chat-line patient">
+                    <span class="speaker-label">Patient</span>
+                    <div class="bubble">
+                        <div class="placeholder-line w-full"></div>
+                        <div class="placeholder-line w-75"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Note Panel -->
+        <div class="panel" id="notePanel">
+            <!-- Success Overlay State -->
+            <div class="success-overlay" id="successState">
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <h4>Note Approved</h4>
+                <p>Structured documentation saved securely.</p>
+                <button class="btn-reset" onclick="resetWorkflow()">Reset Simulation</button>
+            </div>
+
+            <div class="note-section">
+                <h3>Subjective</h3>
+                <div class="note-lines">
+                    <div class="placeholder-line w-full"></div>
+                    <div class="placeholder-line w-full"></div>
+                    <div class="placeholder-line w-75"></div>
+                </div>
+            </div>
+
+            <div class="note-section">
+                <h3>Objective</h3>
+                <div class="note-lines">
+                    <div class="placeholder-line w-full"></div>
+                    <div class="placeholder-line w-60"></div>
+                </div>
+            </div>
+
+            <div class="note-section">
+                <h3>Assessment</h3>
+                <div class="note-lines">
+                    <div class="placeholder-line w-full"></div>
+                    <div class="placeholder-line w-75"></div>
+                </div>
+            </div>
+
+            <div class="note-section">
+                <h3>Plan</h3>
+                <div class="note-lines">
+                    <div class="placeholder-line w-full"></div>
+                    <div class="placeholder-line w-full"></div>
+                </div>
+            </div>
+
+            <div class="button-wrapper">
+                <button class="btn-approve" onclick="approveNote()">Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mandatory Footer Disclaimer -->
+    <div class="footnote">
+        This is for informational purposes only. For medical advice or diagnosis, consult a professional. AI responses may include mistakes.
+    </div>
+
+    <script>
+        function updateConnectorPath() {
+            const transcript = document.getElementById('transcriptPanel');
+            const note = document.getElementById('notePanel');
+            const path = document.getElementById('flowPath');
+            const workspace = document.getElementById('workspaceContainer');
+            
+            if (!transcript || !note || !path || !workspace) return;
+
+            const wsRect = workspace.getBoundingClientRect();
+            const tRect = transcript.getBoundingClientRect();
+            const nRect = note.getBoundingClientRect();
+
+            // Calculate local coordinates relative to the workspace container parent
+            const startX = tRect.right - wsRect.left;
+            const startY = tRect.top - wsRect.top + (tRect.height / 2);
+            
+            const endX = nRect.left - wsRect.left;
+            const endY = nRect.top - wsRect.top + (nRect.height / 2);
+
+            // Draw a beautiful smooth cubic bezier curve connection
+            const controlX1 = startX + (endX - startX) * 0.5;
+            const controlY1 = startY;
+            const controlX2 = startX + (endX - startX) * 0.5;
+            const controlY2 = endY;
+
+            path.setAttribute('d', `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`);
+        }
+
+        function approveNote() {
+            document.getElementById('successState').classList.add('active');
+        }
+
+        function resetWorkflow() {
+            document.getElementById('successState').classList.remove('active');
+        }
+
+        // Initialize and maintain alignment on window resize
+        window.addEventListener('resize', updateConnectorPath);
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(updateConnectorPath, 100);
+        });
+    </script>
+</body>
+</html>
+
