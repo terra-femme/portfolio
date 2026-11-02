@@ -39,6 +39,55 @@ a { color: inherit; text-decoration: none; }
   50%      { text-shadow: 0 0 0.6em rgba(31,138,76,0.7), 0 0 1.2em rgba(31,138,76,0.35); }
 }
 @media (prefers-reduced-motion: reduce){ .nav .links .is-current { animation: none; text-shadow: 0 0 0.4em rgba(31,138,76,0.5); } }
+
+/* Barcode reveal on the nav label (BarcodeReveal.jsx). One six-second loop:
+   bars appear (0 to 6%), the scan line sweeps across (8 to 46%) clearing the
+   bars and revealing the words, the words hold (48 to 90%), then fade (90 to 100%). */
+.bc { position: relative; display: inline-block; }
+.bc-text { position: relative; display: inline-block; color: var(--ink-dim); animation: bc-text 6s linear infinite; }
+.bc-bars {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg,
+    var(--ink) 0 1px, var(--bg-0) 1px 3px,
+    var(--ink) 3px 5px, var(--bg-0) 5px 6px,
+    var(--ink) 6px 8px, var(--bg-0) 8px 11px,
+    var(--ink) 11px 13px, var(--bg-0) 13px 14px,
+    var(--ink) 14px 17px, var(--bg-0) 17px 19px);
+  animation: bc-bars 6s linear infinite;
+}
+.bc-scan {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: 0;
+  width: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: bc-scan 6s linear infinite;
+}
+@keyframes bc-bars {
+  0% { opacity: 0; clip-path: inset(0 0 0 0); }
+  6% { opacity: 1; clip-path: inset(0 0 0 0); }
+  48% { opacity: 1; clip-path: inset(0 0 0 100%); }
+  56%, 100% { opacity: 0; clip-path: inset(0 0 0 100%); }
+}
+@keyframes bc-text {
+  0%, 6% { clip-path: inset(0 100% 0 0); }
+  48% { clip-path: inset(0 0 0 0); }
+  90% { opacity: 1; clip-path: inset(0 0 0 0); }
+  96%, 100% { opacity: 0; clip-path: inset(0 0 0 0); }
+}
+@keyframes bc-scan {
+  0%, 6% { left: 0; opacity: 0; }
+  8% { left: 0; opacity: 1; }
+  46% { left: calc(100% - 2px); opacity: 1; }
+  48%, 100% { left: calc(100% - 2px); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bc-bars, .bc-scan { display: none; }
+  .bc-text { animation: none; clip-path: none; }
+}
 .scramble-word { display: inline-flex; perspective: 240px; }
 /* Each letter is its own flex item inside .scramble-word, so a span holding
    only a space has that space collapsed away and multi-word labels run

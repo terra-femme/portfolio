@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -252,7 +252,7 @@
         // Tell the host page how tall this dashboard is, so the embedding frame
         // can fit it. Only a number is sent; the host cannot read this document.
         function reportHeight() {
-            const height = Math.ceil(document.documentElement.scrollHeight) + 2;
+            const height = Math.ceil(document.body.getBoundingClientRect().height) + 2;
             window.parent.postMessage({ type: 'demo-height', height }, '*');
         }
         new ResizeObserver(reportHeight).observe(document.body);
@@ -270,3 +270,4 @@
     </script>
 </body>
 </html>
+

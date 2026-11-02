@@ -16,6 +16,15 @@ const SAMPLE = {
   total: 14.25,
 };
 
+// The structured form of the same receipt: what the extraction step produces.
+const STRUCTURED = {
+  merchant: SAMPLE.merchant,
+  date: SAMPLE.date,
+  currency: 'USD',
+  items: SAMPLE.items.map((it) => ({ name: it.name, qty: it.qty, amount: it.amount })),
+  total: SAMPLE.total,
+};
+
 const STEPS = [
   { name: 'Upload', note: 'Receipt image lands in Blob Storage' },
   { name: 'Trigger', note: 'Azure Function fires on the new blob' },
@@ -34,7 +43,7 @@ const REPORT_ROWS = [
 const SCENES = [
   { name: 'Receipt', ms: 4000 },
   { name: 'Pipeline steps', ms: 4600 },
-  { name: 'Workflow', ms: 4200 },
+  { name: 'Workflow', ms: 7600 },
   { name: 'Report', ms: 4200 },
 ];
 
@@ -87,19 +96,62 @@ function StepsScene() {
   );
 }
 
-// Scene 3: extracted fields are checked, approved, then written to the sink.
+// Scene 3: the same receipt in three forms, left to right. Each panel appears
+// after the one before it, so the viewer follows the data from raw text to
+// structured fields to spreadsheet cells.
 function WorkflowScene() {
+  const rawLines = [
+    'HARBOR COFFEE CO.',
+    SAMPLE.date,
+    ...SAMPLE.items.map((it) => `${it.qty} x ${it.name.toUpperCase()}  ${money(it.amount)}`),
+    `TOTAL  ${money(SAMPLE.total)}`,
+  ];
+
   return (
-    <div className="dv-workflow">
-      {SAMPLE.items.map((it, i) => (
-        <div key={it.name} className="dv-field dv-in" style={{ animationDelay: `${i * 400}ms` }}>
-          <span>{it.name}</span>
-          <span>{money(it.amount)}</span>
-        </div>
-      ))}
-      <div className="dv-badge dv-in" style={{ animationDelay: '1900ms' }}>Reviewed and approved</div>
-      <div className="dv-sink dv-in" style={{ animationDelay: '2700ms' }}>
-        Approved rows written to the sink
+    <div className="dv-flow">
+      <div className="dv-panel dv-in" style={{ animationDelay: '0ms' }}>
+        <div className="dv-panel-title">1. Unstructured text</div>
+        <pre className="dv-raw">{rawLines.join('\n')}</pre>
+      </div>
+
+      <div className="dv-arrow dv-in" style={{ animationDelay: '1200ms' }} aria-hidden="true">&rarr;</div>
+
+      <div className="dv-panel dv-in" style={{ animationDelay: '1500ms' }}>
+        <div className="dv-panel-title">2. Structured fields</div>
+        <pre className="dv-json">{JSON.stringify(STRUCTURED, null, 2)}</pre>
+      </div>
+
+      <div className="dv-arrow dv-in" style={{ animationDelay: '2800ms' }} aria-hidden="true">&rarr;</div>
+
+      <div className="dv-panel dv-in" style={{ animationDelay: '3000ms' }}>
+        <div className="dv-panel-title">3. Spreadsheet rows</div>
+        <div className="dv-sheet-caption">{SAMPLE.merchant} · {SAMPLE.date}</div>
+        <table className="dv-sheet">
+          <thead>
+            <tr className="dv-in" style={{ animationDelay: '3100ms' }}>
+              <th>Item</th><th className="num">Qty</th><th className="num">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {SAMPLE.items.map((it, i) => (
+              <tr key={it.name} className="dv-in" style={{ animationDelay: `${3300 + i * 300}ms` }}>
+                <td>{it.name}</td>
+                <td className="num">{it.qty}</td>
+                <td className="num">{money(it.amount)}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="dv-in dv-sheet-total" style={{ animationDelay: '4200ms' }}>
+              <th colSpan="2">Total</th>
+              <th className="num">{money(SAMPLE.total)}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div className="dv-approve-line dv-in" style={{ animationDelay: '4800ms' }}>
+        Reviewed and approved, written to the sink
       </div>
     </div>
   );

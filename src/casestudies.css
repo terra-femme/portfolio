@@ -283,6 +283,69 @@
 .dv-badge { justify-self: start; margin-top: 8px; padding: 6px 14px; border-radius: 999px; font-size: 13px; color: var(--accent); background: var(--accent-soft); }
 .dv-sink { padding: 12px 14px; border: 1px solid var(--accent); border-radius: 10px; font-size: 14px; }
 
+/* Scene 3: unstructured text, structured fields, spreadsheet rows. Three panels
+   in a row on desktop, stacked on phones (arrows hidden there). */
+.dv-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.dv-panel {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--bg-1);
+  min-width: 0;
+}
+.dv-panel-title {
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 8px;
+}
+.dv-raw,
+.dv-json {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: pre;
+  overflow-x: auto;
+}
+.dv-raw { background: var(--card); border: 1px dashed var(--line); border-radius: 6px; padding: 10px; }
+.dv-json { color: var(--ink); }
+.dv-arrow {
+  align-self: center;
+  font-size: 22px;
+  color: var(--accent);
+  padding: 0 2px;
+}
+.dv-sheet-caption { font-size: 11px; color: var(--ink-dim); margin-bottom: 6px; }
+.dv-sheet { width: 100%; border-collapse: collapse; font-size: 11px; background: var(--card); }
+.dv-sheet th,
+.dv-sheet td { text-align: left; padding: 5px 4px; border: 1px solid var(--line); }
+.dv-sheet th { color: var(--ink-dim); font-weight: 600; background: var(--bg-1); }
+.dv-sheet .num { text-align: right; }
+.dv-sheet-total th { color: var(--accent); }
+.dv-approve-line {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-top: 4px;
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+@media (max-width: 760px) {
+  .dv-flow { grid-template-columns: minmax(0, 1fr); }
+  .dv-arrow { display: none; }
+}
+
 /* Scene 4: report */
 .dv-final { display: grid; gap: 18px; }
 .dv-kpi { display: flex; flex-direction: column; }

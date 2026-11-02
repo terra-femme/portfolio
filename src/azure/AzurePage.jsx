@@ -5,6 +5,9 @@ import ScrambleNav from '../ScrambleNav';
 import ScrambleWord from '../ScrambleWord';
 import { navLinks } from '../navLinks';
 import DemoVideo from './DemoVideo';
+import EmbedFrame from '../EmbedFrame';
+
+const BASE = import.meta.env.BASE_URL;
 
 const NAV_LINKS = navLinks('azure');
 
@@ -136,6 +139,13 @@ export default function AzurePage() {
                 <p>Simplest to share with non-technical users. Writes go through Logic Apps or Power Automate.</p>
               </div>
             </div>
+          </section>
+
+          <section className="section" id="interactive">
+            <EmbedFrame
+              src={`${BASE}demos/receipt-pipeline.html`}
+              title="Receipt pipeline interactive demo, synthetic data"
+            />
           </section>
 
           <footer className="footer" id="contact">

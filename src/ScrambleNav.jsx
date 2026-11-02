@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import BarcodeReveal from './BarcodeReveal';
 
 const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -168,7 +169,7 @@ export default function ScrambleNav({ links }) {
               aria-label={link.label}
               aria-current={link.current ? 'page' : undefined}
             >
-              {letters}
+              {link.barcode ? <BarcodeReveal text={link.label} /> : letters}
             </span>
           );
         }

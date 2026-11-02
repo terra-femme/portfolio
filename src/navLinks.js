@@ -24,6 +24,7 @@ export function navLinks(page) {
     page === 'azure'
       ? { label: 'Azure', current: true }
       : { href: './azure.html', label: 'Azure' },
-    { label: 'Audio Visual Artist' },
+    // Rendered as a barcode that scan-reveals into the words (BarcodeReveal.jsx).
+    { label: 'Audio Visual Artist', barcode: true },
   ];
 }
